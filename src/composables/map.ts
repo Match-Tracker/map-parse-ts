@@ -117,7 +117,7 @@ class Map {
 		
 		// Draw the line from the killer to the victim with a blue color with a thickness of 5
 		this.ctx.beginPath();
-		this.ctx.strokeStyle = 'rgba(100, 100, 255, 1)';
+		this.ctx.strokeStyle = 'hsl(0, 0%, 0%, 1)';
 		this.ctx.moveTo(canvas_x1, canvas_y1);
 		this.ctx.lineTo(canvas_x2, canvas_y2);
 		this.ctx.stroke();
@@ -127,10 +127,21 @@ class Map {
 	drawPlayer(x: number, y: number, radius: number, player: Player, direction?: number, victim?: boolean) {
 		
 		const { x: canvas_x, y: canvas_y } = this.calculateLocation(x, y);
+
+		// Randomly generate an integer
+		function getRandom(min, max) {
+			min = Math.ceil(min);
+			max = Math.floor(max);
+			return Math.floor(Math.random() * (max - min) + min);
+		}
 		
+		// Create a random HSL colour
+		const colour = `${getRandom(0, 360)}, 100%, ${getRandom(30, 75)}%`;
+		player.colour = colour;
+
 		this.ctx.beginPath();
 		// Draw their circle, if they're victim, change opacity by 50%
-		this.ctx.fillStyle = `rgba(${victim ? 255 : 100}, 150, ${victim ? 0 : 255}, ${victim ? 0.5 : 1})`;
+		this.ctx.fillStyle = `hsla(${colour}, ${victim ? 0.5 : 1})`
 		this.ctx.arc(canvas_x, canvas_y, radius, 0, Math.PI * 2);
 		this.ctx.fill();
 

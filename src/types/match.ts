@@ -126,6 +126,7 @@ export interface Player {
 	economy:             AllPlayerEconomy;
 	damage_made:         number;
 	damage_received:     number;
+	colour: 						 string; 
 }
 
 export interface AllPlayerAbilityCasts {
