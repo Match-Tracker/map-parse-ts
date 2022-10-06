@@ -23,7 +23,7 @@ export default defineEventHandler(async event => {
       grant_type: 'authorization_code',
       code: code.toString(),
       redirect_uri: config.public.REDIRECT_URI,
-      scope: 'identify email guilds guilds.members.read'
+      scope: 'identify email guilds.join'
     }), {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
@@ -45,9 +45,6 @@ export default defineEventHandler(async event => {
       sendError(event, createError({ statusCode: 400, statusMessage: 'Bad Request', data: 'No User ID provided from Discord, please try again.' }));
       return
     }
-    
-    // Fetch Discord Data of User
-    const guilds = await fetchGuilds(data.access_token);
 
     // Create User in Database
     let user = await User.findOne({ discordId: userData.id });
@@ -57,8 +54,7 @@ export default defineEventHandler(async event => {
         discordId: userData.id,
         username: userData.username,
         avatar: userData.avatar,
-        email: userData.email,
-        guilds
+        email: userData.email
       })
 
       await user.save();
