@@ -11,6 +11,19 @@ export interface Match {
 	kills:    Kill[];
 }
 
+export interface APIMatch {
+	map: string,
+	length: number,
+	rounds: number,
+	date: number,
+	mode: Mode,
+	matchId: string,
+	score: {
+		red: number,
+		blue: number
+	}
+}
+
 export interface Kill {
 	kill_time_in_round:       number;
 	kill_time_in_match:       number;
@@ -93,6 +106,8 @@ export interface Metadata {
 
 export enum Mode {
 	Unrated = "Unrated",
+	Competitive = "Competitive",
+	SpikeRush = "Spike Rush"
 }
 
 export enum PlatformEnum {
