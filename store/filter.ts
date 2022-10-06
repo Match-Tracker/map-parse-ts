@@ -1,7 +1,7 @@
 import { useMatch } from './match';
 import { defineStore } from 'pinia'
-import { Side } from '~/types/filters';
-import { Player } from '~/types/match';
+import { RoundOutcome, Side } from '~/types/filters';
+import { Player, PlantSite } from '~/types/match';
 
 export const useFilter = defineStore('filter', {
   state: () => {
@@ -11,14 +11,15 @@ export const useFilter = defineStore('filter', {
 			maxRoundNumber: 30 as number,
 			side: Side.All as Side,
 			players: [] as Player[],
+			roundOutcome: RoundOutcome.All as RoundOutcome,
 			hasPlanted: undefined as boolean,
+			PlantSite: PlantSite.All as PlantSite
     }
   },
   actions: {
     updateFilter(key: string, value: any) {
 			this[key] = value;
 
-			console.log(this.players)
 			const match = useMatch();
 
 			if (match.canvas) {

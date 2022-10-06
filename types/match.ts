@@ -261,6 +261,8 @@ export interface PlantEvents {
 export enum PlantSite {
 	A = "A",
 	B = "B",
+	C = "C",
+	All = "All"
 }
 
 export interface PlayerStat {

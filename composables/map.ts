@@ -1,7 +1,7 @@
-import { AgentID, Team, type Kill, type MapInfo, type Match, type Player, type PlayerLocationsOn } from './../types/match';
+import { AgentID, Round, Team, type Kill, type MapInfo, type Match, type Player, type PlayerLocationsOn, PlantSite } from './../types/match';
 
 import * as MapData from '../types/maps.json';
-import { Filter, Side } from '~~/types/filters';
+import { Filter, RoundOutcome, Side } from '~~/types/filters';
 
 
 interface ImageCache { [key: string]: HTMLImageElement; }
@@ -131,12 +131,18 @@ class Map {
 
 	filterPlayers(locations: PlayerLocationsOn[], round: number, filter: Filter) {
 		return locations.filter((location) => {
-			const isAttackers = (location.player_team === Team.Blue && round <= 12 || location.player_team === Team.Red && round > 12);
-			const isDefenders = (location.player_team === Team.Red && round <= 12 || location.player_team === Team.Blue && round > 12);
+			const isAttackers = (location.player_team === Team.Red && round <= 12 || location.player_team === Team.Blue && round > 12);
+			const isDefenders = (location.player_team === Team.Blue && round <= 12 || location.player_team === Team.Red && round > 12);
 
 			const isAll = filter.side !== Side.All ? (filter.side === Side.Attacking ? isAttackers : isDefenders) : true;
 
-			return isAll && filter.players.some((player) => player.puuid === location.player_puuid);
+			// Check if the player is apart of the rounds winning team if we're filtering by winner
+			const isWinner = location.player_team === this.match.rounds[round].winning_team;
+			const isLoser = location.player_team !== this.match.rounds[round].winning_team;
+
+			const isWinning = filter.roundOutcome !== RoundOutcome.All ? (filter.roundOutcome === RoundOutcome.Win ? isWinner : isLoser) : true;
+
+			return isAll && isWinning && filter.players.some((player) => player.puuid === location.player_puuid);
 		});
 	}
 
@@ -276,6 +282,32 @@ class Map {
 		});
 	}
 
+	drawSpike (x: number, y: number) {
+		const { x: canvas_x, y: canvas_y } = this.calculateLocation(x, y);
+
+		this.ctx.beginPath();
+		this.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+		this.ctx.arc(canvas_x, canvas_y, 12, 0, Math.PI * 2, true);
+		this.ctx.fill();
+		this.ctx.closePath();
+		this.ctx.clip();
+	}
+
+	drawBombPlacements (filter: Filter) {
+		const rounds: Round[] = this.match.rounds.filter((round) => {
+			// console.log('Planted', round.bomb_planted)
+			// console.log('Site', round.plant_events.plant_site)
+			// console.log('Requested Site', filter.PlantSite)
+
+			return round.bomb_planted && filter.PlantSite !== PlantSite.All ? round.plant_events.plant_site === filter.PlantSite : true; 
+		});
+
+		rounds.forEach((round) => {
+			const { x, y } = this.calculateLocation(round.plant_events.plant_location.x, round.plant_events.plant_location.x);
+			this.drawSpike(x, y);
+		});
+	}
+
 	drawLine(x1: number, y1: number, x2: number, y2: number, player: Player) {
 
 		const { x: canvas_x1, y: canvas_y1 } = this.calculateLocation(x1, y1);
@@ -305,6 +337,7 @@ class Map {
 	update(filter: Filter) {
 		this.clearCanvas();
 		this.drawMovementMap(filter, false);
+		this.drawBombPlacements(filter);
 	}
 }
 
