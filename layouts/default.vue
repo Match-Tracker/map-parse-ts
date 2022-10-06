@@ -2,7 +2,7 @@
 	<div>
 		<Navbar />
 
-		<div class="w-full h-full">
+		<div class="w-full min-h-full">
 			<NuxtPage />
 		</div>
 	</div>
