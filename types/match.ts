@@ -81,6 +81,7 @@ export interface PlayerLocationsOn {
 	player_team:         Team;
 	location:            Location;
 	view_radians:        number;
+	is_victim?: 				 boolean;
 }
 
 export interface Location {

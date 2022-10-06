@@ -5,9 +5,6 @@ import { defineStore } from "pinia";
 
 import type { Kill, Metadata, Players, Round, Teams, Player, Data } from "../types/match";
 
-// SWITCH OUT WITH OUR OWN API
-const API_URL = "https://api.henrikdev.xyz/valorant/v2"
-
 export const useMatch = defineStore('match', {
 	state: () => {
 		return {

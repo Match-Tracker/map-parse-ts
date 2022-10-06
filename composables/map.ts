@@ -1,6 +1,7 @@
-import { AgentID, type Kill, type MapInfo, type Match, type Player, type PlayerLocationsOn } from './../types/match';
+import { AgentID, Team, type Kill, type MapInfo, type Match, type Player, type PlayerLocationsOn } from './../types/match';
 
 import * as MapData from '../types/maps.json';
+import { Filter, Side } from '~~/types/filters';
 
 
 interface ImageCache { [key: string]: HTMLImageElement; }
@@ -33,6 +34,7 @@ class Map {
 			'/assets/img/maps/haven.png',
 			'/assets/img/maps/icebox.png',
 			'/assets/img/maps/split.png',
+			'/assets/img/maps/fracture.png',
 			'/assets/img/agents/astra.png',
 			'/assets/img/agents/breach.png',
 			'/assets/img/agents/brimstone.png',
@@ -68,18 +70,18 @@ class Map {
 		});
 	}
 
-	setupCanvas(){
+	setupCanvas() {
 		this.canvas.width = 1024;
 		this.canvas.height = 1024;
 	}
 
-	clearCanvas () {
+	clearCanvas() {
 		// Clear all drawings except the map
 		this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 		this.ctx.drawImage(this.imageCache[this.map.toLowerCase()], 0, 0);
 	}
 
-	loadImages () {
+	loadImages() {
 		return this.images.map((image) => {
 			return new Promise<void>((resolve) => {
 				const img = new Image();
@@ -120,33 +122,51 @@ class Map {
 		return this.match.players.all_players.find((player) => player.puuid === puuid) || this.match.players.all_players[0];
 	}
 
-	fetchAgent (player: Player): string {
+	fetchAgent(player: Player): string {
 		const agentId: string = player.assets.agent.small.split('/')[4].toUpperCase() || '';
-		
+
 		return AgentID[agentId as keyof typeof AgentID] || 'unknown';
 	}
 
-	drawPlayerCircle (x: number, y: number, radius: number, player: Player, victim?: boolean) {
+	filterPlayers(locations: PlayerLocationsOn[], round: number, filter: Filter) {
+		return locations.filter((location) => {
+			const isAttackers = (location.player_team === Team.Blue && round <= 12 || location.player_team === Team.Red && round > 12);
+			const isDefenders = (location.player_team === Team.Red && round <= 12 || location.player_team === Team.Blue && round > 12);
+
+			const isAll = filter.side !== Side.All ? (filter.side === Side.Attacking ? isAttackers : isDefenders) : true;
+
+			return isAll && filter.players.some((player) => player.puuid === location.player_puuid);
+		});
+	}
+
+	filterKills(kills: Kill[], filter: Filter) {
+		return kills.filter((kill) => {
+			return kill.kill_time_in_round / 1000 >= filter.minRoundTime && 
+				kill.kill_time_in_round / 1000 <= filter.maxRoundTime
+		});
+	}
+
+	drawPlayerCircle(x: number, y: number, radius: number, player: Player, victim?: boolean) {
 		this.ctx.beginPath();
 		this.ctx.arc(x, y, radius, 0, Math.PI * 2);
-		this.ctx.fillStyle = `hsla(${player.color}, ${victim ? 0.5 : 1})`
+		this.ctx.fillStyle = `hsla(${player.color}, ${victim ? 0.2 : 1})`
 		this.ctx.fill();
 		this.ctx.strokeStyle = 'hsla(0, 0, 0, 1)'
 		this.ctx.stroke()
 		this.ctx.closePath();
 	}
 
-	drawAgent (x: number, y: number, radius: number, player: Player, victim?: boolean) {
+	drawAgent(x: number, y: number, radius: number, player: Player, victim?: boolean) {
 		// Function that grabs the Agent image and applies it to the canvas as a circle thumbnail
 		const agent: string = this.fetchAgent(player);
 
 		// Mask
 		this.ctx.save();
-		
+
 		this.ctx.beginPath();
-			this.ctx.fillStyle = 'rgba(0, 0, 0, 0)';
-				this.ctx.arc(x, y, radius, 0, Math.PI * 2, true);
-				this.ctx.fill();
+		this.ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+		this.ctx.arc(x, y, radius, 0, Math.PI * 2, true);
+		this.ctx.fill();
 		this.ctx.closePath();
 		this.ctx.clip();
 
@@ -196,14 +216,15 @@ class Map {
 		}
 
 		positions.forEach((position) => {
-			this.drawPlayer(position.location.x, position.location.y, 13, this.getPlayerFromPuuid(position.player_puuid), position.view_radians, position === victim);
+			this.drawPlayer(position.location.x, position.location.y, 13, position.player_puuid, position.view_radians, position === victim);
 		});
 	}
 
-	drawPlayer(x: number, y: number, radius: number, player: Player, direction?: number, agent?: boolean, victim?: boolean) {
-		
+	drawPlayer(x: number, y: number, radius: number, playerId: string, direction?: number, agent?: boolean, victim?: boolean) {
+
 		const { x: canvas_x, y: canvas_y } = this.calculateLocation(x, y);
-		
+		const player: Player = this.getPlayerFromPuuid(playerId);
+
 		if (agent) {
 			this.drawAgent(canvas_x, canvas_y, radius, player, victim);
 		} else {
@@ -221,31 +242,44 @@ class Map {
 		}
 	}
 
-	drawMovementMap (player: Player, timeRange: number[], drawAgents: boolean) {
+	drawMovementMap(filter: Filter, drawAgents: boolean) {
 
 		// Map out all players movements from every kill
-		const kills: Kill[] = this.match.kills.filter((kill) => kill.kill_time_in_round / 1000 >= timeRange[0] && kill.kill_time_in_round / 1000 <= timeRange[1]);
-		const playerPositions: PlayerLocationsOn[] = kills.reduce((acc: PlayerLocationsOn[], kill: Kill) => {
-			const playerPosition: PlayerLocationsOn | null = kill.player_locations_on_kill.find((location) => location.player_puuid === player.puuid) || null;
+		const kills: Kill[] = this.filterKills(this.match.kills, filter);
+		console.log('Drawing movement map for', kills.length, 'kills');
 
-			if (playerPosition) {
-				acc.push(playerPosition);
-			}
+		const playerLocationsOn: PlayerLocationsOn[] = kills.reduce((acc, kill) => {
+			// Filter out the players
 
-			return acc;
+			// Add the victim to the array?
+			const victim: PlayerLocationsOn = {
+				player_puuid: kill.victim_puuid,
+				player_display_name: kill.victim_display_name,
+				player_team: kill.victim_team,
+				location: kill.victim_death_location,
+				view_radians: 0,
+				is_victim: true
+			};
+
+			const filteredLocations: PlayerLocationsOn[] = this.filterPlayers([...kill.player_locations_on_kill, victim], kill.round, filter);
+
+			return [
+				...acc,
+				...filteredLocations
+			];
 		}, []);
-
+		
 		// Draw the map
-		playerPositions.forEach((position) => {
-			this.drawPlayer(position.location.x, position.location.y, 10, player, position.view_radians, drawAgents, position === playerPositions[playerPositions.length - 1]);
+		playerLocationsOn.forEach((position) => {
+			this.drawPlayer(position.location.x, position.location.y, 10, position.player_puuid, position.view_radians, drawAgents, position.is_victim);
 		});
 	}
 
 	drawLine(x1: number, y1: number, x2: number, y2: number, player: Player) {
-		
+
 		const { x: canvas_x1, y: canvas_y1 } = this.calculateLocation(x1, y1);
 		const { x: canvas_x2, y: canvas_y2 } = this.calculateLocation(x2, y2);
-		
+
 		// Draw the line from the killer to the victim with a blue color with a thickness of 5
 		this.ctx.beginPath();
 		this.ctx.strokeStyle = `hsl(${player.color})`;
@@ -265,6 +299,11 @@ class Map {
 		this.ctx.fill();
 		this.ctx.stroke();
 		this.ctx.closePath();
+	}
+
+	update(filter: Filter) {
+		this.clearCanvas();
+		this.drawMovementMap(filter, false);
 	}
 }
 

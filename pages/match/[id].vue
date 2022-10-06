@@ -19,7 +19,7 @@
 				<RangeSlide class="mt-4" @update="rangeUpdate" />
 			</div>
 
-			<FiltersFilterOptions />
+			<FiltersFilterOptions @update="sideChange" />
 		</div>
 	</div>
 </template>
@@ -31,13 +31,23 @@ import RangeSlide from '~~/components/Rounds/RangeSlide.vue';
 import type { Player } from '@/types/match';
 import useMatch from '~~/store/match';
 import { Ref } from 'vue';
+import { Filter, Side } from '~~/types/filters';
 
 const matchId: string = useRoute().params.id as string;
 const match = useMatch();
 const hasLoaded: Ref<boolean> = ref(false);
 
-let timeRange: number[] = [0, 300];
-let curPlayer: Player | null = null;
+// let timeRange: number[] = [0, 300];
+// let curPlayer: Player | null = null;
+
+const filter: Ref<Filter> = ref({
+	players: match.players.all_players,
+	minRoundTime: 0,
+	maxRoundTime: 150,
+	minRoundNumber: 0,
+	maxRoundNumber: 30,
+	side: Side.All
+});
 
 onMounted(async () => {
 	await match.fetchMatch(matchId);
@@ -46,26 +56,19 @@ onMounted(async () => {
 })
 
 function rangeUpdate(range: number[]) {
-	timeRange = range;
-	console.log(timeRange);
-	draw(curPlayer, timeRange);
+	filter.value.minRoundTime = range[0];
+	filter.value.maxRoundTime = range[1];
+	match.canvas.update(filter.value);
 }
 
-function playerChange(player: Player | null) {
-	curPlayer = player;
-	draw(curPlayer, timeRange);
+function playerChange(players: Player[]) {
+	filter.value.players = players;
+	match.canvas.update(filter.value);
 }
 
-function draw(curPlayer: Player | null, timeRange: number[]) {
-	match.canvas.clearCanvas();
-
-	if (curPlayer === null) {
-		for (curPlayer of match.players.all_players) {
-			match.canvas.drawMovementMap(curPlayer, timeRange, false);
-		}
-	} else {
-		match.canvas.drawMovementMap(curPlayer, timeRange, false);
-	}
+function sideChange(side: Side) {
+	filter.value.side = side;
+	match.canvas.update(filter.value);
 }
 </script>
 
