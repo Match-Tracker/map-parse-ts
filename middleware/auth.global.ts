@@ -12,9 +12,4 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
 				console.log(err);
 			});
 	}
-
-	// If the user is not authed and the page requires it, redirect to auth page
-	if (!auth.loggedIn && to.meta.requiresAuth) {
-		return navigateTo('/api/auth');
-	}
 })
