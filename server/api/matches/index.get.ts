@@ -16,7 +16,7 @@ export default defineEventHandler(async event => {
 	}
 
 	// Get the user's matches
-	const { data } = await axios.get(`https://api.henrikdev.xyz/valorant/v3/by-puuid/matches/${query.region}/${query.puuid}?filter=custom`);
+	const { data } = await axios.get(`https://api.henrikdev.xyz/valorant/v3/by-puuid/matches/${query.region}/${query.puuid}?filter=${query.filter}`);
 
 	// Parse through the matches and only return 
 	const matches: Match[] = data.data

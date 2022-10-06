@@ -1,7 +1,7 @@
 <template>
 	<div class="collapse collapse-arrow bg-neutral rounded-box">
 		<input v-model="isOpen" type="checkbox" /> 
-		<div class="flex items-center gap-1 collapse-title text-xl font-medium ml-2 text-white">
+		<div class="flex items-center gap-1 collapse-title text-xl font-medium pl-6 text-white">
 			{{ props.account.username }}#{{ props.account.tagline }}
 			<span class="text-xs text-gray-500">
 				EUW
@@ -46,15 +46,17 @@ import { useAuth } from '~~/store/auth';
 import { APIMatch } from '~~/types/match';
 import { RiotAccount } from '~~/types/user';
 
-const isOpen: Ref<boolean> = ref(false);
+const isOpen: Ref<boolean> = ref(true);
 const matches: Ref<APIMatch[]> = ref([]);
+
+const filter: Ref<string> = ref('unrated');
 
 const props = defineProps<{
 	account: RiotAccount;
 }>();
 
 async function fetchMatches () {
-	const { data } = await useFetch(`/api/matches?region=eu&puuid=${props.account.puuid}`, { method: 'GET' });
+	const { data } = await useFetch(`/api/matches?region=eu&puuid=${props.account.puuid}&filter=${filter.value}`, { method: 'GET' });
 
 	if (data) {
 		matches.value = data.value as APIMatch[];
