@@ -9,12 +9,12 @@ import Slider from '@vueform/slider'
 import '@vueform/slider/themes/default.css'
 
 import { type Ref } from 'vue';
-  
-const emit = defineEmits<{(e: 'update', id: number[]): number[]}>()
+import { useFilter } from '~~/store/filter';
 
+const filter = useFilter();
 const range: Ref<number[]> = ref([0, 150])
 
 function onChange (value: number[]) {
-  emit('update', [value[0], value[1]]);
+  filter.updateFilter('roundTimeRange', value)
 }
 </script>

@@ -7,8 +7,7 @@ export enum Side {
 }
 
 export interface Filter {
-	minRoundTime: number;
-	maxRoundTime: number;
+	roundTimeRange: number[];
 	minRoundNumber: number;
 	maxRoundNumber: number;
 	side: Side;

@@ -23,15 +23,15 @@
 
 <script lang="ts" setup>
 import { Ref } from 'vue';
+import { useFilter } from '~~/store/filter';
 import { Side } from '~~/types/filters';
 
+const filter = useFilter();
 const activeSide: Ref<Side> = ref(Side.All);
-
-const emit = defineEmits<{(e: 'update', id: Side): Side}>()
 
 function sideChange(side: Side) {
 	activeSide.value = side;
-	emit('update', side);
+	filter.updateFilter('side', side);
 }
 
 

@@ -27,16 +27,17 @@ import { type Ref } from 'vue';
 
 import useMatch from '@/store/match';
 import type { Player } from '@/types/match';
+import { useFilter } from '~~/store/filter';
 
 const match = useMatch();
+const filter = useFilter();
+
 const activePlayers: Ref<Player[]> = ref([]);
 
 defineProps<{
 	showBlue: boolean;
 	showRed: boolean;
 }>();
-
-const emit = defineEmits<{(e: 'update', id: Player[] | []): Player[] | null}>()
 
 function importImage (path: string) {
 	const href = new URL(`/assets/img/${path}`, import.meta.url).href;
@@ -46,9 +47,15 @@ function importImage (path: string) {
 function drawMovements (player: Player) {
 	if (activePlayers.value.includes(player)) {
 		activePlayers.value = activePlayers.value.filter(p => p.puuid != player.puuid);
+
+		if (activePlayers.value.length === 0) {
+			filter.updateFilter('players', match.players.all_players);
+			return;
+		}
 	} else {
 		activePlayers.value.push(player);
 	}
-	emit("update", activePlayers.value);
+	
+	filter.updateFilter('players', activePlayers.value);
 }
 </script>

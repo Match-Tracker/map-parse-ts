@@ -35,6 +35,7 @@ class Map {
 			'/assets/img/maps/icebox.png',
 			'/assets/img/maps/split.png',
 			'/assets/img/maps/fracture.png',
+			'/assets/img/maps/pearl.png',
 			'/assets/img/agents/astra.png',
 			'/assets/img/agents/breach.png',
 			'/assets/img/agents/brimstone.png',
@@ -141,15 +142,15 @@ class Map {
 
 	filterKills(kills: Kill[], filter: Filter) {
 		return kills.filter((kill) => {
-			return kill.kill_time_in_round / 1000 >= filter.minRoundTime && 
-				kill.kill_time_in_round / 1000 <= filter.maxRoundTime
+			return kill.kill_time_in_round / 1000 >= filter.roundTimeRange[0] && 
+				kill.kill_time_in_round / 1000 <= filter.roundTimeRange[1]
 		});
 	}
 
 	drawPlayerCircle(x: number, y: number, radius: number, player: Player, victim?: boolean) {
 		this.ctx.beginPath();
 		this.ctx.arc(x, y, radius, 0, Math.PI * 2);
-		this.ctx.fillStyle = `hsla(${player.color}, ${victim ? 0.2 : 1})`
+		this.ctx.fillStyle = `hsla(${player.color}, ${victim ? 0.35 : 1})`
 		this.ctx.fill();
 		this.ctx.strokeStyle = 'hsla(0, 0, 0, 1)'
 		this.ctx.stroke()
