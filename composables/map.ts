@@ -154,7 +154,7 @@ class Map {
 
 		const team: Team = player.team
 
-		const isAttacking = round <= 12 && team === Team.Blue || round > 12 && team === Team.Red;
+		const isAttacking = round <= 12 && team === Team.Red || round > 12 && team === Team.Blue;
 
 		return side === Side.Attacking && isAttacking || side === Side.Defending && !isAttacking;
 	}
