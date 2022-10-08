@@ -1,6 +1,6 @@
 import { useMatch } from './match';
 import { defineStore } from 'pinia'
-import { KillTime, RoundOutcome, Side } from '~/types/filters';
+import { RoundOutcome, Side } from '~/types/filters';
 import { Player, PlantSite } from '~/types/match';
 import { match } from 'assert';
 
@@ -15,7 +15,7 @@ export const useFilter = defineStore('filter', {
 			roundOutcome: RoundOutcome.All as RoundOutcome,
 			hasPlanted: undefined as boolean,
 			plantedAt: PlantSite.All as PlantSite,
-			killTime: KillTime.All as string,
+			firstBlood: false as boolean,
 			drawHeatmap: false as boolean,
 		}
 	},

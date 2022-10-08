@@ -32,6 +32,6 @@ export interface Filter {
 	roundOutcome: RoundOutcome;
 	hasPlanted?: boolean;
 	plantedAt: PlantSite;
-	killTime: KillTime;
+	firstBlood: boolean;
 	drawHeatmap: boolean;
 }

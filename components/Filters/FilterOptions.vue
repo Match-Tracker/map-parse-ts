@@ -23,7 +23,7 @@
 import { Ref } from 'vue';
 
 import { useFilter } from '~~/store/filter';
-import { KillTime, KillType, RoundOutcome, Side } from '~~/types/filters';
+import { RoundOutcome, Side } from '~~/types/filters';
 import { PlantSite } from '~/types/match';
 
 import ButtonGroup from './ButtonGroup.vue';
@@ -120,16 +120,16 @@ const filters = [
 	},
 	{
 		title: 'Kill Time',
-		key: 'killTime',
+		key: 'firstBlood',
 		tabs: ['kills'],
 		options: [
 			{
-				value: KillTime.All,
-				label: 'All'
+				label: 'All',
+				value: false
 			},
 			{
-				value: KillTime.FirstBlood,
-				label: 'First Blood'
+				label: 'First Blood',
+				value: true,
 			}
 		]
 	}	

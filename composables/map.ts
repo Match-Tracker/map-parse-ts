@@ -1,8 +1,9 @@
 import { AgentID, Round, Team, type Kill, type MapInfo, type Match, type Player, type PlayerLocationsOn, PlantSite, Blue } from './../types/match';
 
 import * as MapData from '../types/maps.json';
-import { Filter, KillTime, RoundOutcome, Side } from '~~/types/filters';
+import { Filter, RoundOutcome, Side } from '~~/types/filters';
 import Heatmap from './heatmap';
+import { Console } from 'console';
 
 interface ImageCache { [key: string]: HTMLImageElement; }
 class Map {
@@ -79,7 +80,7 @@ class Map {
 
 			this.isReady = true;
 
-			this.update({ roundTimeRange: [0, 150] as number[], minRoundNumber: 0 as number, maxRoundNumber: 30 as number, side: Side.All as Side, players: this.match.players.all_players as Player[], roundOutcome: RoundOutcome.All as RoundOutcome, hasPlanted: undefined as boolean, plantedAt: PlantSite.All as PlantSite, killTime: KillTime.All });
+			this.update({ roundTimeRange: [0, 150] as number[], minRoundNumber: 0 as number, maxRoundNumber: 30 as number, side: Side.All as Side, players: this.match.players.all_players as Player[], roundOutcome: RoundOutcome.All as RoundOutcome, hasPlanted: undefined as boolean, plantedAt: PlantSite.All as PlantSite, firstBlood: false as boolean, drawHeatmap: false as boolean });
 		});
 	}
 
@@ -337,11 +338,21 @@ class Map {
 	drawKills(filter: Filter) {
 		const kills: Kill[] = this.filterKills(this.match.kills, filter);
 
-		kills.forEach((kill) => {
+		kills.forEach((kill, index) => {
 			const player: Player = filter.players.find((player) => player.puuid === kill.killer_puuid);
 			const killerPosition: PlayerLocationsOn | null = kill.player_locations_on_kill.find((location) => location.player_puuid === kill.killer_puuid) || null;
 
-			if (player && killerPosition && this.isSide(player, filter.side, kill.round) && this.isOutcome(player, filter.roundOutcome, kill.round)) {
+			// If firstblood & not first kill in the round skip
+			if (filter.firstBlood) {
+				if (index == 0 ) {
+					return;
+				} 
+				if (kill.round == kills[index-1].round) {
+					return;
+				}
+			}
+			
+			if (player && killerPosition && this.isSide(player, filter.side, kill.round) && this.isOutcome(player, filter.roundOutcome, kill.round)) {				
 				// Draw killer, victim and line between them
 				this.drawLine(killerPosition.location.x, killerPosition.location.y, kill.victim_death_location.x, kill.victim_death_location.y, this.getPlayerFromPuuid(killerPosition.player_puuid));
 				this.drawPlayer(killerPosition.location.x, killerPosition.location.y, 10, killerPosition.player_puuid, killerPosition.view_radians, false, false);
