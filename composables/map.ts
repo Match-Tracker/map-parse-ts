@@ -209,7 +209,6 @@ class Map {
 	}
 
 	drawPlayerPositions(round: number, kill_index: number) {
-		console.log('Drawing player positions for round', round, 'and kill index', kill_index);
 		const kills: Kill[] = this.match.kills;
 
 		let positions: PlayerLocationsOn[] = [];
@@ -277,7 +276,6 @@ class Map {
 
 		// Map out all players movements from every kill
 		const kills: Kill[] = this.filterKills(this.match.kills, filter);
-		console.log('Drawing movement map for', kills.length, 'kills');
 
 		const playerLocationsOn: PlayerLocationsOn[] = kills.reduce((acc, kill) => {
 			// Add the victim to the array
@@ -408,7 +406,7 @@ class Map {
 
 	update(filter: Filter, drawAgents?: boolean) {
 		this.clearCanvas();
-		console.log(this.mode);
+
 		if (this.mode === 'movement') {
 			this.drawMovementMap(filter, drawAgents);
 		} else if (this.mode === 'plants') {
