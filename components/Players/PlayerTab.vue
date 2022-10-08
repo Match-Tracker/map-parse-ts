@@ -28,11 +28,11 @@ import useMatch from '@/store/match';
 const match = useMatch();
 const filter = useFilter();
 
-const activePlayers: Ref<Player[]> = ref([]);
-
 const props = defineProps<{
 	team: Team;
 }>();
+
+const activePlayers: Ref<Player[]> = ref(match.players[props.team.toLowerCase()]);
 
 function importImage (path: string) {
 	const href = new URL(`/assets/img/${path}`, import.meta.url).href;

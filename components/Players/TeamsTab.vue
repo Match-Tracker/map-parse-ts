@@ -44,7 +44,7 @@ import { useFilter } from '~~/store/filter';
 const match = useMatch();
 const filter = useFilter();
 
-const activePlayers: Ref<Player[]> = ref([]);
+const activePlayers: Ref<Player[]> = ref(match.players.all_players);
 
 defineProps<{
 	showBlue: boolean;
@@ -82,7 +82,7 @@ function selectAll () {
 
 function selectTeam (team: 'blue' | 'red') {
 	if (activePlayers.value.filter(p => p.team.toString().toLowerCase() === team).length === 5) {
-		activePlayers.value = [];
+		activePlayers.value = activePlayers.value.filter(p => p.team.toString().toLowerCase() !== team);
 	} else {
 		activePlayers.value.push(...match.players[team]);
 	}
