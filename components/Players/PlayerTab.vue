@@ -1,8 +1,8 @@
 <template>
 	<div class="flex flex-col gap-4">
-		<ul v-show="showBlue" class="menu bg-neutral w-56 rounded-box">
-			<li v-for="(player, index) in match.players.blue" :key="index" @click="drawMovements(player)">
-				<div :class="`${activePlayers.includes(player) ? 'active' : ''} items-center`">
+		<ul class="menu bg-neutral w-56 rounded-box">
+			<li v-for="(player, index) in match.players[team.toLowerCase()]" :key="index" @click="drawMovements(player)">
+				<div :class="`${isActive(player) ? 'active' : ''} items-center`">
 					<img class="w-6 h-6 rounded-full" :src="importImage(`agents/${match.canvas.fetchAgent(player)}.png`)" />
 					<p>{{ player.name }}</p>
 					<div class="rounded-full w-2 h-2 ml-auto" :style="`background-color: hsl(${player.color})`" />
@@ -10,33 +10,28 @@
 			</li>
 		</ul>
 
-		<ul v-show="showRed" class="menu bg-neutral w-56 rounded-box">
-			<li v-for="(player, index) in match.players.red" :key="index" @click="drawMovements(player)">
-				<div :class="`${activePlayers.includes(player) ? 'active' : ''} items-center`">
-					<img class="w-6 h-6 rounded-full" :src="importImage(`agents/${match.canvas.fetchAgent(player)}.png`)" />
-					<p>{{ player.name }}</p>
-					<div class="rounded-full w-2 h-2 ml-auto" :style="`background-color: hsl(${player.color})`" />
-				</div>
-			</li>
-		</ul>
+		<div class="flex justify-between">
+			<button class="btn text-accent btn-xs btn-outline rounded-full normal-case" @click="selectAll">
+				<span class="text-white">All</span>
+			</button>
+		</div>
 	</div>
 </template>
 
 <script lang="ts" setup>
 import { type Ref } from 'vue';
+import type { Player, Team } from '@/types/match';
 
-import useMatch from '@/store/match';
-import type { Player } from '@/types/match';
 import { useFilter } from '~~/store/filter';
+import useMatch from '@/store/match';
 
 const match = useMatch();
 const filter = useFilter();
 
 const activePlayers: Ref<Player[]> = ref([]);
 
-defineProps<{
-	showBlue: boolean;
-	showRed: boolean;
+const props = defineProps<{
+	team: Team;
 }>();
 
 function importImage (path: string) {
@@ -45,17 +40,26 @@ function importImage (path: string) {
 }
 
 function drawMovements (player: Player) {
-	if (activePlayers.value.includes(player)) {
+	if (activePlayers.value.some(p => p.puuid === player.puuid)) {
 		activePlayers.value = activePlayers.value.filter(p => p.puuid != player.puuid);
-
-		if (activePlayers.value.length === 0) {
-			filter.updateFilter('players', match.players.all_players);
-			return;
-		}
 	} else {
 		activePlayers.value.push(player);
 	}
 	
+	filter.updateFilter('players', activePlayers.value);
+}
+
+function isActive (player: Player) {
+	return activePlayers.value.some(p => p.puuid === player.puuid)
+}
+
+function selectAll () {
+	if (activePlayers.value.length === 5) {
+		activePlayers.value = [];
+	} else {
+		activePlayers.value = match.players[props.team.toLowerCase()];
+	}
+
 	filter.updateFilter('players', activePlayers.value);
 }
 </script>

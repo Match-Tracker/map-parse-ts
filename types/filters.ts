@@ -12,6 +12,17 @@ export enum RoundOutcome {
 	All = "All"
 }
 
+export enum KillType {
+	Headshot = "Headshot",
+	Bodyshot = "Bodyshot",
+	All = "All"
+}
+
+export enum KillTime {
+	FirstBlood = "FirstBlood",
+	All = "All"
+}
+
 export interface Filter {
 	roundTimeRange: number[];
 	minRoundNumber: number;
@@ -20,5 +31,7 @@ export interface Filter {
 	players: Player[];
 	roundOutcome: RoundOutcome;
 	hasPlanted?: boolean;
-	PlantSite: PlantSite;
+	plantedAt: PlantSite;
+	killTime: KillTime;
+	drawHeatmap: boolean;
 }

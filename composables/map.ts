@@ -1,8 +1,8 @@
-import { AgentID, Round, Team, type Kill, type MapInfo, type Match, type Player, type PlayerLocationsOn, PlantSite } from './../types/match';
+import { AgentID, Round, Team, type Kill, type MapInfo, type Match, type Player, type PlayerLocationsOn, PlantSite, Blue } from './../types/match';
 
 import * as MapData from '../types/maps.json';
-import { Filter, RoundOutcome, Side } from '~~/types/filters';
-
+import { Filter, KillTime, RoundOutcome, Side } from '~~/types/filters';
+import Heatmap from './heatmap';
 
 interface ImageCache { [key: string]: HTMLImageElement; }
 class Map {
@@ -17,6 +17,10 @@ class Map {
 
 	minTime: number;
 	maxTime: number;
+
+	mode: string;
+
+	heatmap: Heatmap;
 
 	constructor(match: Match, canvas: HTMLCanvasElement) {
 		this.isReady = false;
@@ -54,12 +58,18 @@ class Map {
 			'/assets/img/agents/fade.png',
 			'/assets/img/agents/neon.png',
 			'/assets/img/agents/chamber.png',
-			'/assets/img/agents/kayo.png'
+			'/assets/img/agents/kayo.png',
+			'/assets/img/assets/spike-red.png',
+			'/assets/img/assets/spike-blue.png',
 		];
 
 		/* Filters */
 		this.minTime = 0;
 		this.maxTime = 300;
+
+		this.mode = 'movement';
+
+		this.heatmap = new Heatmap(this.canvas);
 
 		Promise.all(this.loadImages()).then(() => {
 			this.fetchMapInfo();
@@ -68,6 +78,8 @@ class Map {
 			this.ctx.drawImage(this.imageCache[this.map.toLowerCase()], 0, 0);
 
 			this.isReady = true;
+
+			this.update({ roundTimeRange: [0, 150] as number[], minRoundNumber: 0 as number, maxRoundNumber: 30 as number, side: Side.All as Side, players: this.match.players.all_players as Player[], roundOutcome: RoundOutcome.All as RoundOutcome, hasPlanted: undefined as boolean, plantedAt: PlantSite.All as PlantSite, killTime: KillTime.All });
 		});
 	}
 
@@ -129,37 +141,49 @@ class Map {
 		return AgentID[agentId as keyof typeof AgentID] || 'unknown';
 	}
 
-	filterPlayers(locations: PlayerLocationsOn[], round: number, filter: Filter) {
-		return locations.filter((location) => {
-			const isAttackers = (location.player_team === Team.Red && round <= 12 || location.player_team === Team.Blue && round > 12);
-			const isDefenders = (location.player_team === Team.Blue && round <= 12 || location.player_team === Team.Red && round > 12);
-
-			const isAll = filter.side !== Side.All ? (filter.side === Side.Attacking ? isAttackers : isDefenders) : true;
-
-			// Check if the player is apart of the rounds winning team if we're filtering by winner
-			const isWinner = location.player_team === this.match.rounds[round].winning_team;
-			const isLoser = location.player_team !== this.match.rounds[round].winning_team;
-
-			const isWinning = filter.roundOutcome !== RoundOutcome.All ? (filter.roundOutcome === RoundOutcome.Win ? isWinner : isLoser) : true;
-
-			return isAll && isWinning && filter.players.some((player) => player.puuid === location.player_puuid);
-		});
-	}
-
 	filterKills(kills: Kill[], filter: Filter) {
 		return kills.filter((kill) => {
-			return kill.kill_time_in_round / 1000 >= filter.roundTimeRange[0] && 
+			return kill.kill_time_in_round / 1000 >= filter.roundTimeRange[0] &&
 				kill.kill_time_in_round / 1000 <= filter.roundTimeRange[1]
 		});
 	}
 
+	isSide(player: Player, side: Side, round: number) {
+		if (side === Side.All) return true;
+
+		const team: Team = player.team
+
+		const isAttacking = round <= 12 && team === Team.Blue || round > 12 && team === Team.Red;
+
+		return side === Side.Attacking && isAttacking || side === Side.Defending && !isAttacking;
+	}
+
+	isOutcome(player: Player, outcome: RoundOutcome, round: number) {
+		if (outcome === RoundOutcome.All) return true;
+
+		const roundInfo: Round = this.match.rounds[round];
+
+		const isWin = roundInfo.winning_team === player.team;
+
+		return outcome === RoundOutcome.Win && isWin || outcome === RoundOutcome.Loss && !isWin;
+	}
+
+	atPlantspot(player: Player, site: PlantSite, round: number) {
+		if (site === PlantSite.All) return true;
+
+		const roundInfo: Round = this.match.rounds[round];
+
+		return roundInfo.plant_events.plant_site === site;
+	}
+
 	drawPlayerCircle(x: number, y: number, radius: number, player: Player, victim?: boolean) {
 		this.ctx.beginPath();
-		this.ctx.arc(x, y, radius, 0, Math.PI * 2);
-		this.ctx.fillStyle = `hsla(${player.color}, ${victim ? 0.35 : 1})`
-		this.ctx.fill();
 		this.ctx.strokeStyle = 'hsla(0, 0, 0, 1)'
-		this.ctx.stroke()
+		this.ctx.lineWidth = 1;
+		this.ctx.fillStyle = `hsla(${player.color}, ${victim ? 0.35 : 1})`
+		this.ctx.arc(x, y, radius, 0, Math.PI * 2);
+		this.ctx.fill();
+		this.ctx.stroke();
 		this.ctx.closePath();
 	}
 
@@ -256,9 +280,7 @@ class Map {
 		console.log('Drawing movement map for', kills.length, 'kills');
 
 		const playerLocationsOn: PlayerLocationsOn[] = kills.reduce((acc, kill) => {
-			// Filter out the players
-
-			// Add the victim to the array?
+			// Add the victim to the array
 			const victim: PlayerLocationsOn = {
 				player_puuid: kill.victim_puuid,
 				player_display_name: kill.victim_display_name,
@@ -268,43 +290,65 @@ class Map {
 				is_victim: true
 			};
 
-			const filteredLocations: PlayerLocationsOn[] = this.filterPlayers([...kill.player_locations_on_kill, victim], kill.round, filter);
+			// Filter out all the Players Movements based on our filter settings
+			const filteredLocations: PlayerLocationsOn[] = [...kill.player_locations_on_kill, victim].filter((location) => {
+				const player: Player = filter.players.find((player) => player.puuid === location.player_puuid) || null;
+
+				return player && this.isSide(player, filter.side, kill.round) && this.isOutcome(player, filter.roundOutcome, kill.round);
+			});
 
 			return [
 				...acc,
 				...filteredLocations
 			];
 		}, []);
-		
-		// Draw the map
+
+		if (filter.drawHeatmap) {
+			this.drawHeatmap(playerLocationsOn);
+			return;
+		}
+
 		playerLocationsOn.forEach((position) => {
 			this.drawPlayer(position.location.x, position.location.y, 10, position.player_puuid, position.view_radians, drawAgents, position.is_victim);
 		});
 	}
 
-	drawSpike (x: number, y: number) {
-		const { x: canvas_x, y: canvas_y } = this.calculateLocation(x, y);
+	// Create a function that groups the closest positions together and draw them all as a heatmap
+	drawHeatmap(playerLocationsOn: PlayerLocationsOn[]) {
+		this.heatmap.setData(
+			playerLocationsOn.map((location) => {
+				const { x, y } = this.calculateLocation(location.location.x, location.location.y);
 
-		this.ctx.beginPath();
-		this.ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-		this.ctx.arc(canvas_x, canvas_y, 12, 0, Math.PI * 2, true);
-		this.ctx.fill();
-		this.ctx.closePath();
-		this.ctx.clip();
+				return {
+					x,
+					y,
+					value: 10,
+				}
+			})
+		)
+
+		const imageURL = this.heatmap.toDataURL();
+
+		const image = new Image();
+		image.src = imageURL;
+		image.onload = () => {
+			this.ctx.drawImage(image, 0, 0, this.canvas.width, this.canvas.height);
+		}
 	}
 
-	drawBombPlacements (filter: Filter) {
-		const rounds: Round[] = this.match.rounds.filter((round) => {
-			// console.log('Planted', round.bomb_planted)
-			// console.log('Site', round.plant_events.plant_site)
-			// console.log('Requested Site', filter.PlantSite)
+	drawKills(filter: Filter) {
+		const kills: Kill[] = this.filterKills(this.match.kills, filter);
 
-			return round.bomb_planted && filter.PlantSite !== PlantSite.All ? round.plant_events.plant_site === filter.PlantSite : true; 
-		});
+		kills.forEach((kill) => {
+			const player: Player = filter.players.find((player) => player.puuid === kill.killer_puuid);
+			const killerPosition: PlayerLocationsOn | null = kill.player_locations_on_kill.find((location) => location.player_puuid === kill.killer_puuid) || null;
 
-		rounds.forEach((round) => {
-			const { x, y } = this.calculateLocation(round.plant_events.plant_location.x, round.plant_events.plant_location.x);
-			this.drawSpike(x, y);
+			if (player && killerPosition && this.isSide(player, filter.side, kill.round) && this.isOutcome(player, filter.roundOutcome, kill.round)) {
+				// Draw killer, victim and line between them
+				this.drawLine(killerPosition.location.x, killerPosition.location.y, kill.victim_death_location.x, kill.victim_death_location.y, this.getPlayerFromPuuid(killerPosition.player_puuid));
+				this.drawPlayer(killerPosition.location.x, killerPosition.location.y, 10, killerPosition.player_puuid, killerPosition.view_radians, false, false);
+				this.drawPlayer(kill.victim_death_location.x, kill.victim_death_location.y, 10, kill.victim_puuid, 0, false, true);
+			}
 		});
 	}
 
@@ -313,9 +357,10 @@ class Map {
 		const { x: canvas_x1, y: canvas_y1 } = this.calculateLocation(x1, y1);
 		const { x: canvas_x2, y: canvas_y2 } = this.calculateLocation(x2, y2);
 
-		// Draw the line from the killer to the victim with a blue color with a thickness of 5
+		// Draw a line between the two points with a width of 2 and the players, make sure not to override other strokes
 		this.ctx.beginPath();
-		this.ctx.strokeStyle = `hsl(${player.color})`;
+		this.ctx.lineWidth = 2;
+		this.ctx.strokeStyle = player.color;
 		this.ctx.moveTo(canvas_x1, canvas_y1);
 		this.ctx.lineTo(canvas_x2, canvas_y2);
 		this.ctx.stroke();
@@ -325,19 +370,56 @@ class Map {
 	drawTriangle(x: number, y: number, radius: number, radians: number, player: Player) {
 		this.ctx.beginPath();
 		this.ctx.fillStyle = `hsl(${player.color})`;
-		this.ctx.strokeStyle = 'hsla(0, 0, 0, 1)'
+		this.ctx.strokeStyle = 'hsla(0, 0, 0, 1)';
+		this.ctx.lineWidth = 2;
 		this.ctx.moveTo(x + Math.cos(radians + (2 * Math.PI) / 3) * radius, y + Math.sin(radians + (2 * Math.PI) / 3) * radius);
 		this.ctx.lineTo(x + Math.cos(radians) * radius, y + Math.sin(radians) * radius);
 		this.ctx.lineTo(x + Math.cos(radians + (4 * Math.PI) / 3) * radius, y + Math.sin(radians + (4 * Math.PI) / 3) * radius);
-		this.ctx.fill();
 		this.ctx.stroke();
+		this.ctx.closePath();
+		this.ctx.fill();
+	}
+
+	drawSpike(x: number, y: number, color: string) {
+		const { x: canvas_x, y: canvas_y } = this.calculateLocation(x, y);
+
+		this.ctx.beginPath();
+		this.ctx.drawImage(this.imageCache[`spike-${color.toLowerCase()}`], canvas_x - 16, canvas_y - 16, 32, 32);
 		this.ctx.closePath();
 	}
 
-	update(filter: Filter) {
+	drawBombPlacements(filter: Filter) {
+		const rounds: Round[] = this.match.rounds.filter((round, roundNumber) => {
+			if (!round.bomb_planted) return false; // No plants
+
+			// Find player who planted the bomb based on our selected players
+			const player: Player = filter.players.find((player) => player.puuid === round.plant_events.planted_by.puuid);
+
+			// Return the the rounds where the player did plant that round and is on the selected site
+			return player
+				&& this.isOutcome(player, filter.roundOutcome, roundNumber)
+				&& this.atPlantspot(player, filter.plantedAt, roundNumber);
+		});
+
+		rounds.forEach((round) => {
+			this.drawSpike(round.plant_events.plant_location.x, round.plant_events.plant_location.y, round.plant_events.planted_by.team);
+		});
+	}
+
+	update(filter: Filter, drawAgents?: boolean) {
 		this.clearCanvas();
-		this.drawMovementMap(filter, false);
-		this.drawBombPlacements(filter);
+		console.log(this.mode);
+		if (this.mode === 'movement') {
+			this.drawMovementMap(filter, drawAgents);
+		} else if (this.mode === 'plants') {
+			this.drawBombPlacements(filter);
+		} else if (this.mode === 'kills') {
+			this.drawKills(filter);
+		}
+	}
+
+	setMode(mode: string) {
+		this.mode = mode;
 	}
 }
 

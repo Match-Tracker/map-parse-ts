@@ -6,7 +6,8 @@
 		</div>
 		<div v-if="hasLoaded" class="overview flex flex-row min-w-full justify-center items-start gap-12">
 			<div v-if="match.canvas" class="player__menus flex gap-3">
-				<PlayersPlayerTab :showRed="true" :showBlue="true" />
+				<!-- <PlayersPlayerTab :team="team" /> -->
+				<PlayersTeamsTab :showRed="true" :showBlue="true" />
 			</div>
 
 
@@ -29,15 +30,23 @@ import RangeSlide from '~~/components/Rounds/RangeSlide.vue';
 import useMatch from '~~/store/match';
 
 import { Ref } from 'vue';
+import { useFilter } from '~~/store/filter';
+import { useAuth } from '~~/store/auth';
+import { Team } from '~~/types/match';
 
 const matchId: string = useRoute().params.id as string;
 const match = useMatch();
+const auth = useAuth();
+
 const hasLoaded: Ref<boolean> = ref(false);
+const team: Ref<Team> = ref(Team.Blue);
 
 onMounted(async () => {
 	await match.fetchMatch(matchId);
 
 	hasLoaded.value = true;
+
+	team.value = match.players.all_players.find((player) => auth.user.riotAccounts.some((account) => account.puuid === player.puuid)).team;
 })
 </script>
 

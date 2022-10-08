@@ -7,32 +7,13 @@
 			</h2>
 
 			<div class="options flex flex-col gap-4 mt-6">
-				<div>
-					<p class="text-white font-bold mb-1">Side</p>
-					<div class="btn-group">
-						<button :class="`btn btn-sm normal-case ${activeSide === Side.All ? 'btn-active' : 'bg-base-100'}`" @click="sideChange(Side.All)">All</button>
-						<button :class="`btn btn-sm normal-case ${activeSide === Side.Attacking ? 'btn-active' : 'bg-base-100'}`" @click="sideChange(Side.Attacking)">Attack</button>
-						<button :class="`btn btn-sm normal-case ${activeSide === Side.Defending ? 'btn-active' : 'bg-base-100'}`" @click="sideChange(Side.Defending)">Defense</button>
-					</div>
-				</div>
-				<div>
-					<p class="text-white font-bold mb-1">Round Outcome</p>
-					<div class="btn-group">
-						<button :class="`btn btn-sm normal-case ${activeOutcome === RoundOutcome.All ? 'btn-active' : 'bg-base-100'}`" @click="outcomeChange(RoundOutcome.All)">All</button>
-						<button :class="`btn btn-sm normal-case ${activeOutcome === RoundOutcome.Win ? 'btn-active' : 'bg-base-100'}`" @click="outcomeChange(RoundOutcome.Win)">Win</button>
-						<button :class="`btn btn-sm normal-case ${activeOutcome === RoundOutcome.Loss ? 'btn-active' : 'bg-base-100'}`" @click="outcomeChange(RoundOutcome.Loss)">Loss</button>
-					</div>
+				<div class="tabs tabs-boxed">
+					<a :class="`tab ${isActive('movement') ? 'tab-active' : ''}`" @click="setActive('movement')">Movement</a> 
+					<a :class="`tab ${isActive('kills') ? 'tab-active' : ''}`" @click="setActive('kills')">Kills</a> 
+					<a :class="`tab ${isActive('plants') ? 'tab-active' : ''}`" @click="setActive('plants')">Plants</a>
 				</div>
 
-				<div>
-					<p class="text-white font-bold mb-1">PlantSite</p>
-					<div class="btn-group">
-						<button :class="`btn btn-sm normal-case ${plantedSite === PlantSite.All ? 'btn-active' : 'bg-base-100'}`" @click="siteChange(PlantSite.All)">All</button>
-						<button :class="`btn btn-sm normal-case ${plantedSite === PlantSite.A ? 'btn-active' : 'bg-base-100'}`" @click="siteChange(PlantSite.A)">A</button>
-						<button :class="`btn btn-sm normal-case ${plantedSite === PlantSite.B ? 'btn-active' : 'bg-base-100'}`" @click="siteChange(PlantSite.B)">B</button>
-						<button :class="`btn btn-sm normal-case ${plantedSite === PlantSite.C ? 'btn-active' : 'bg-base-100'}`" @click="siteChange(PlantSite.C)">C</button>
-					</div>
-				</div>
+				<ButtonGroup v-for="(filterable, index) in filters" v-show="filterable.tabs.includes(activeTab)" :key="index" :title="filterable.title" :options="filterable.options" :key-name="filterable.key" />
 			</div>
 		</div>
 	</div>
@@ -40,28 +21,117 @@
 
 <script lang="ts" setup>
 import { Ref } from 'vue';
+
 import { useFilter } from '~~/store/filter';
-import { RoundOutcome, Side } from '~~/types/filters';
+import { KillTime, KillType, RoundOutcome, Side } from '~~/types/filters';
 import { PlantSite } from '~/types/match';
 
+import ButtonGroup from './ButtonGroup.vue';
+
 const filter = useFilter();
-const activeSide: Ref<Side> = ref(Side.All);
-const activeOutcome: Ref<RoundOutcome> = ref(RoundOutcome.All);
-const plantedSite: Ref<PlantSite> = ref(PlantSite.All);
+const activeTab: Ref<string> = ref('movement');
 
-
-function sideChange(side: Side) {
-	activeSide.value = side;
-	filter.updateFilter('side', side);
+function isActive (tab: string) {
+	return activeTab.value === tab
 }
 
-function outcomeChange(outcome: RoundOutcome) {
-	activeOutcome.value = outcome;
-	filter.updateFilter('roundOutcome', outcome);
-}
+function setActive (tab: string) {
+	activeTab.value = tab;
 
-function siteChange(site: PlantSite) {
-	plantedSite.value = site;
-	filter.updateFilter('PlantSite', site);
+	filter.changeTab(tab);
 }
+// Create a dynamic function that can take in a parameter of type T and updates the filter
+const filters = [
+	{
+		title: 'Display As',
+		key: 'drawHeatmap',
+		tabs: ['movement'],
+		options: [
+			{
+				label: 'Points',
+				value: false
+			},
+			{
+				label: 'Heatmap',
+				value: true
+			}
+		]
+	},
+	{
+		title: 'Side',
+		key: 'side',
+		tabs: ['movement', 'kills'],
+		options: [
+			{
+				value: Side.All,
+				label: 'All'
+			},
+			{
+				value: Side.Attacking,
+				label: 'Attack'
+			},
+			{
+				value: Side.Defending,
+				label: 'Defense'
+			}
+		]
+	},
+	{
+		title: 'Round Outcome',
+		key: 'roundOutcome',
+		tabs: ['movement', 'kills', 'plants'],
+		options: [
+			{
+				value: RoundOutcome.All,
+				label: 'All'
+			},
+			{
+				value: RoundOutcome.Win,
+				label: 'Win'
+			},
+			{
+				value: RoundOutcome.Loss,
+				label: 'Loss'
+			}
+		]
+	},
+	{
+		title: 'Planted At',
+		key: 'plantedAt',
+		tabs: ['plants'],
+		options: [
+			{
+				value: PlantSite.All,
+				label: 'All'
+			},
+			{
+				value: PlantSite.A,
+				label: 'A'
+			},
+			{
+				value: PlantSite.B,
+				label: 'B'
+			},
+			{
+				value: PlantSite.C,
+				label: 'C'
+			}
+		]
+	},
+	{
+		title: 'Kill Time',
+		key: 'killTime',
+		tabs: ['kills'],
+		options: [
+			{
+				value: KillTime.All,
+				label: 'All'
+			},
+			{
+				value: KillTime.FirstBlood,
+				label: 'First Blood'
+			}
+		]
+	}	
+]
 </script>

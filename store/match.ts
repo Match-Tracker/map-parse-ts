@@ -1,3 +1,4 @@
+import { useFilter } from './filter';
 import { setColors } from './../composables/util';
 import Map from '@/composables/map';
 import axios from "axios";
