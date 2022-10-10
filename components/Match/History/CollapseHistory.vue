@@ -10,7 +10,7 @@
 		<div class="matches flex flex-col gap-6 collapse-content px-6"> 
 			<div class="match items-center flex" v-for="(match, index) in matches" :key="index">
 				<div class="match__info flex items-start">
-					<img class="w-32 h-14 mr-4 rounded-md object-cover" :src="mapImage(match.map)" />
+					<img class="w-32 h-14 mr-4 rounded-md object-cover" :src="`/img/maps/listview/${match.map}`" />
 					<div class="-mt-1">
 						<h3 class="text-white font-bold text-lg">
 							{{ match.map }}
@@ -63,11 +63,6 @@ async function fetchMatches () {
 	if (data) {
 		matches.value = data.value as APIMatch[];
 	}
-}
-
-function mapImage (name: string) {
-	const href = new URL(`/img/maps/listview/${name}.png`, import.meta.url).href;
-	return href
 }
 
 onMounted(async () => {

@@ -3,7 +3,7 @@
 		<ul v-show="showBlue" class="menu bg-neutral w-56 rounded-box">
 			<li v-for="(player, index) in match.players.blue" :key="index" @click="drawMovements(player)">
 				<div :class="`${isActive(player) ? 'active bg-blue-500 active:bg-blue-500' : ''} items-center`">
-					<img class="w-6 h-6 rounded-full" :src="importImage(`agents/${match.canvas.fetchAgent(player)}.png`)" />
+					<img class="w-6 h-6 rounded-full" :src="`/img/agents/${match.canvas.fetchAgent(player)}.png`" />
 					<p>{{ player.name }}</p>
 					<div class="rounded-full w-2 h-2 ml-auto" :style="`background-color: hsl(${player.color})`" />
 				</div>
@@ -13,7 +13,7 @@
 		<ul v-show="showRed" class="menu bg-neutral w-56 rounded-box">
 			<li v-for="(player, index) in match.players.red" :key="index" @click="drawMovements(player)">
 				<div :class="`${isActive(player) ? 'active' : ''} items-center`">
-					<img class="w-6 h-6 rounded-full" :src="importImage(`agents/${match.canvas.fetchAgent(player)}.png`)" />
+					<img class="w-6 h-6 rounded-full" :src="`/img/agents/${match.canvas.fetchAgent(player)}.png`" />
 					<p>{{ player.name }}</p>
 					<div class="rounded-full w-2 h-2 ml-auto" :style="`background-color: hsl(${player.color})`" />
 				</div>
@@ -50,11 +50,6 @@ defineProps<{
 	showBlue: boolean;
 	showRed: boolean;
 }>();
-
-function importImage (path: string) {
-	const href = new URL(`/img/${path}`, import.meta.url).href;
-	return href
-}
 
 function drawMovements (player: Player) {
 	if (activePlayers.value.some(p => p.puuid === player.puuid)) {
