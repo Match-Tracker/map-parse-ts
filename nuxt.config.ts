@@ -2,24 +2,29 @@
 export default defineNuxtConfig({
 	modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt'],
 	runtimeConfig: {
-    MONGO_URI: 'mongodb://localhost:27017/match-tracker',
-		SESSION_SECRET: 'secret',
-		CLIENT_ID: '1027338110654218352',
-		CLIENT_SECRET: 'qoW69to_XIu8jLSiYTao5bNo52FdoMLB',
+		MONGO_URI: '',
+		SESSION_SECRET: '',
+		CLIENT_ID: '',
+		CLIENT_SECRET: '',
+		STRAPI_SECRET: '',
 		public: {
-			REDIRECT_URI: 'http://localhost:3000/api/auth/callback',
-			OAUTH_URL: 'https://discord.com/api/oauth2/authorize?client_id=1027338110654218352&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fauth%2Fcallback&response_type=code&scope=identify%20guilds.join%20email',
+			REDIRECT_URI: '',
+			OAUTH_URL: '',
+			STRAPI_KEY: ''
 		}
 	},
 	css: [
-    '@fortawesome/fontawesome-svg-core/styles.css'
-  ],
+		'@fortawesome/fontawesome-svg-core/styles.css',
+		'vue-toastification/dist/index.css'
+	],
 	build: {
 		transpile: [
-				'@fortawesome/fontawesome-svg-core',
-				'@fortawesome/pro-solid-svg-icons',
-				'@fortawesome/pro-regular-svg-icons',
-				'@fortawesome/free-brands-svg-icons'
+			"@fortawesome/fontawesome-svg-core",
+			"@fortawesome/free-brands-svg-icons",
+			"@fortawesome/free-regular-svg-icons",
+			"@fortawesome/free-solid-svg-icons",
+			"@fortawesome/vue-fontawesome",
+			"vue-toastification"
 		]
 	},
 	vite: { ssr: { noExternal: ["moment"], } }

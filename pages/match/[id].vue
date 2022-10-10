@@ -30,7 +30,6 @@ import RangeSlide from '~~/components/Rounds/RangeSlide.vue';
 import useMatch from '~~/store/match';
 
 import { Ref } from 'vue';
-import { useFilter } from '~~/store/filter';
 import { useAuth } from '~~/store/auth';
 import { Team } from '~~/types/match';
 
@@ -44,9 +43,11 @@ const team: Ref<Team> = ref(Team.Blue);
 onMounted(async () => {
 	await match.fetchMatch(matchId);
 
-	hasLoaded.value = true;
+	if (match.metadata && match.metadata.matchid) {
+		hasLoaded.value = true;
 
-	team.value = match.players.all_players.find((player) => auth.user.riotAccounts.some((account) => account.puuid === player.puuid)).team;
+		team.value = match.players.all_players.find((player) => auth.user.riotAccounts.some((account) => account.puuid === player.puuid)).team;
+	}
 })
 </script>
 

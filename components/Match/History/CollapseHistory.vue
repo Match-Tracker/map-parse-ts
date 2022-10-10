@@ -32,7 +32,7 @@
 					</div>
 				</div>
 
-				<NuxtLink class="btn btn-primary btn-sm ml-auto text-white normal-case" :to="`/match/${match.matchId}`">
+				<NuxtLink :class="`btn btn-sm ml-auto normal-case ${auth.user.subscription.active ? 'text-white btn-primary' : 'btn-disabled'}`" :to="`/match/${match.matchId}`">
 					Analyze
 				</NuxtLink>
 			</div>
@@ -45,6 +45,8 @@ import { Ref } from 'vue';
 import { useAuth } from '~~/store/auth';
 import { APIMatch } from '~~/types/match';
 import { RiotAccount } from '~~/types/user';
+
+const auth = useAuth();
 
 const isOpen: Ref<boolean> = ref(true);
 const matches: Ref<APIMatch[]> = ref([]);

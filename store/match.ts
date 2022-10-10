@@ -1,8 +1,9 @@
-import { useFilter } from './filter';
+import { Match } from './../types/match';
 import { setColors } from './../composables/util';
-import Map from '@/composables/map';
-import axios from "axios";
 import { defineStore } from "pinia";
+import { useToast } from 'vue-toastification/dist/index.mjs'
+
+import Map from '@/composables/map';
 
 import type { Kill, Metadata, Players, Round, Teams, Player, Data } from "../types/match";
 
@@ -20,14 +21,22 @@ export const useMatch = defineStore('match', {
 	},
 	actions: {
 		async fetchMatch(matchId: string) {
-			const data: Data = await $fetch(`https://api.henrikdev.xyz/valorant/v2/match/${matchId}`);
+			const { statusCode, body } = await $fetch<Data>(`/api/matches/${matchId}`);
+
+			if (statusCode && statusCode !== 200) {
+				navigateTo('/account/matches')
+				useToast().error('You do not have an active subscription.');
+				return;
+			}
+			
+			const { metadata, players, teams, rounds, kills } = body as Match;
 
 			this.matchId = matchId;
-			this.metadata = data.data.metadata;
-			this.players = data.data.players;
-			this.teams = data.data.teams;
-			this.rounds = data.data.rounds;
-			this.kills = data.data.kills;
+			this.metadata = metadata;
+			this.players = players;
+			this.teams = teams;
+			this.rounds = rounds;
+			this.kills = kills;
 		},
 
 		createCanvas (canvas: HTMLCanvasElement) {

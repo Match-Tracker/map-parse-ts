@@ -1,6 +1,6 @@
 export interface Data {
-	status: number;
-	data:   Match;
+	statusCode: number;
+	body: any;
 }
 
 export interface Match {

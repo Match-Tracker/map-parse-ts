@@ -70,7 +70,7 @@ class Map {
 
 		this.mode = 'movement';
 
-		this.heatmap = new Heatmap(this.canvas);
+		this.heatmap = new Heatmap();
 
 		Promise.all(this.loadImages()).then(() => {
 			this.fetchMapInfo();
@@ -154,7 +154,7 @@ class Map {
 
 		const team: Team = player.team
 
-		const isAttacking = round <= 12 && team === Team.Red || round > 12 && team === Team.Blue;
+		const isAttacking = round <= 11 && team === Team.Red || round > 11 && team === Team.Blue;
 
 		return side === Side.Attacking && isAttacking || side === Side.Defending && !isAttacking;
 	}
@@ -343,16 +343,11 @@ class Map {
 			const killerPosition: PlayerLocationsOn | null = kill.player_locations_on_kill.find((location) => location.player_puuid === kill.killer_puuid) || null;
 
 			// If firstblood & not first kill in the round skip
-			if (filter.firstBlood) {
-				if (index == 0 ) {
-					return;
-				} 
-				if (kill.round == kills[index-1].round) {
-					return;
-				}
+			if (filter.firstBlood && (index === 0 || kill.round === kills[index - 1].round)) {
+				return;
 			}
-			
-			if (player && killerPosition && this.isSide(player, filter.side, kill.round) && this.isOutcome(player, filter.roundOutcome, kill.round)) {				
+
+			if (player && killerPosition && this.isSide(player, filter.side, kill.round) && this.isOutcome(player, filter.roundOutcome, kill.round)) {
 				// Draw killer, victim and line between them
 				this.drawLine(killerPosition.location.x, killerPosition.location.y, kill.victim_death_location.x, kill.victim_death_location.y, this.getPlayerFromPuuid(killerPosition.player_puuid));
 				this.drawPlayer(killerPosition.location.x, killerPosition.location.y, 10, killerPosition.player_puuid, killerPosition.view_radians, false, false);
