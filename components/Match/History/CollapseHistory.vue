@@ -66,7 +66,7 @@ async function fetchMatches () {
 }
 
 function mapImage (name: string) {
-	const href = new URL(`/assets/img/maps/listview/${name}.png`, import.meta.url).href;
+	const href = new URL(`/img/maps/listview/${name}.png`, import.meta.url).href;
 	return href
 }
 

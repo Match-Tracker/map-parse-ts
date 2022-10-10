@@ -26,7 +26,7 @@
 			</div>
 
 			<div class="mockup-window bg-neutral max-w-2xl shadow-lg">
-				<img src="~/assets/img/mockups/1.png" class="w-full object-fill" />
+				<img src="/img/mockups/1.png" class="w-full object-fill" />
 			</div>
 		</div>
 

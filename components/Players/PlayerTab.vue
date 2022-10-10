@@ -35,7 +35,7 @@ const props = defineProps<{
 const activePlayers: Ref<Player[]> = ref(match.players[props.team.toLowerCase()]);
 
 function importImage (path: string) {
-	const href = new URL(`/assets/img/${path}`, import.meta.url).href;
+	const href = new URL(`/img/${path}`, import.meta.url).href;
 	return href
 }
 
