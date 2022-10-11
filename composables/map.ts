@@ -1,7 +1,7 @@
 import { AgentID, Round, Team, type Kill, type MapInfo, type Match, type Player, type PlayerLocationsOn, PlantSite, Blue } from './../types/match';
 
 import * as MapData from '../types/maps.json';
-import { Filter, RoundOutcome, Side } from '~~/types/filters';
+import { Filter, RoundOutcome, Side, TradedFilter } from '~~/types/filters';
 import Heatmap from './heatmap';
 import { Console } from 'console';
 
@@ -80,7 +80,7 @@ class Map {
 
 			this.isReady = true;
 
-			this.update({ roundTimeRange: [0, 150] as number[], minRoundNumber: 0 as number, maxRoundNumber: 30 as number, side: Side.All as Side, players: this.match.players.all_players as Player[], roundOutcome: RoundOutcome.All as RoundOutcome, hasPlanted: undefined as boolean, plantedAt: PlantSite.All as PlantSite, firstBlood: false as boolean, drawHeatmap: false as boolean });
+			this.update({ roundTimeRange: [0, 150], minRoundNumber: 0, maxRoundNumber: 30, side: Side.All, players: this.match.players.all_players, roundOutcome: RoundOutcome.All, hasPlanted: undefined, plantedAt: PlantSite.All, firstBlood: false, drawHeatmap: false, traded: TradedFilter.All });
 		});
 	}
 
@@ -147,6 +147,20 @@ class Map {
 			return kill.kill_time_in_round / 1000 >= filter.roundTimeRange[0] &&
 				kill.kill_time_in_round / 1000 <= filter.roundTimeRange[1]
 		});
+	}
+
+	isTraded(currentKill: Kill, kills: Kill[], filter: Filter) {
+		if (filter.traded === TradedFilter.All) return true;
+
+		// Check if the kill before was within 10 seconds previous of the current kill and the killer was the current kill victim and it was on the same round
+		const isTraded = kills.find((kill) => kill.kill_time_in_round >= currentKill.kill_time_in_round - 10000 && kill.killer_puuid === currentKill.victim_puuid && kill.round === currentKill.round);
+		const isUntraded = kills.find((kill) => kill.kill_time_in_round >= currentKill.kill_time_in_round + 10000 && currentKill.killer_puuid === kill.victim_puuid && kill.round === currentKill.round);
+
+		if (filter.traded === TradedFilter.Traded && isTraded) return true;
+		
+		if (filter.traded === TradedFilter.NotTraded && isUntraded) return true;
+
+		return false;
 	}
 
 	isSide(player: Player, side: Side, round: number) {
@@ -347,7 +361,7 @@ class Map {
 				return;
 			}
 
-			if (player && killerPosition && this.isSide(player, filter.side, kill.round) && this.isOutcome(player, filter.roundOutcome, kill.round)) {
+			if (player && killerPosition && this.isSide(player, filter.side, kill.round) && this.isOutcome(player, filter.roundOutcome, kill.round) && this.isTraded(kill, kills, filter)) {
 				// Draw killer, victim and line between them
 				this.drawLine(killerPosition.location.x, killerPosition.location.y, kill.victim_death_location.x, kill.victim_death_location.y, this.getPlayerFromPuuid(killerPosition.player_puuid));
 				this.drawPlayer(killerPosition.location.x, killerPosition.location.y, 10, killerPosition.player_puuid, killerPosition.view_radians, false, false);

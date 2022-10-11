@@ -23,7 +23,7 @@
 import { Ref } from 'vue';
 
 import { useFilter } from '~~/store/filter';
-import { RoundOutcome, Side } from '~~/types/filters';
+import { RoundOutcome, Side, TradedFilter } from '~~/types/filters';
 import { PlantSite } from '~/types/match';
 
 import ButtonGroup from './ButtonGroup.vue';
@@ -119,6 +119,25 @@ const filters = [
 		]
 	},
 	{
+		title: 'Traded Kill',
+		key: 'traded',
+		tabs: ['kills'],
+		options: [
+			{
+				label: 'All',
+				value: TradedFilter.All
+			},
+			{
+				label: 'Traded',
+				value: TradedFilter.Traded,
+			},
+			{
+				label: 'Untraded',
+				value: TradedFilter.NotTraded
+			}
+		]
+	},
+	{
 		title: 'Kill Time',
 		key: 'firstBlood',
 		tabs: ['kills'],
@@ -132,6 +151,6 @@ const filters = [
 				value: true,
 			}
 		]
-	}	
+	}
 ]
 </script>

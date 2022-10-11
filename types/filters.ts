@@ -23,6 +23,12 @@ export enum KillTime {
 	All = "All"
 }
 
+export enum TradedFilter {
+	Traded = "Traded",
+	NotTraded = "NotTraded",
+	All = "All"
+}
+
 export interface Filter {
 	roundTimeRange: number[];
 	minRoundNumber: number;
@@ -34,4 +40,5 @@ export interface Filter {
 	plantedAt: PlantSite;
 	firstBlood: boolean;
 	drawHeatmap: boolean;
+	traded: TradedFilter;
 }

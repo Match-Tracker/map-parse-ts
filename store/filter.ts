@@ -1,22 +1,23 @@
 import { useMatch } from './match';
 import { defineStore } from 'pinia'
-import { RoundOutcome, Side } from '~/types/filters';
+import { RoundOutcome, Side, TradedFilter } from '~/types/filters';
 import { Player, PlantSite } from '~/types/match';
 import { match } from 'assert';
 
 export const useFilter = defineStore('filter', {
 	state: () => {
 		return {
-			roundTimeRange: [0, 150] as number[],
-			minRoundNumber: 0 as number,
-			maxRoundNumber: 30 as number,
-			side: Side.All as Side,
-			players: [] as Player[],
-			roundOutcome: RoundOutcome.All as RoundOutcome,
-			hasPlanted: undefined as boolean,
-			plantedAt: PlantSite.All as PlantSite,
-			firstBlood: false as boolean,
-			drawHeatmap: false as boolean,
+			roundTimeRange: [0, 150],
+			minRoundNumber: 0,
+			maxRoundNumber: 30,
+			side: Side.All,
+			players: [],
+			roundOutcome: RoundOutcome.All,
+			hasPlanted: undefined,
+			plantedAt: PlantSite.All,
+			firstBlood: false,
+			drawHeatmap: false,
+			traded: TradedFilter.All
 		}
 	},
 	actions: {

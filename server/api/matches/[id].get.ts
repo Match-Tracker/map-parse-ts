@@ -8,12 +8,10 @@ export default defineEventHandler(async event => {
 	console.log(user)
 	// Check if the user has an active subscription
 	if (!user.subscription.active || user.subscription.expiresAt < new Date()) {
-		return {
-			statusCode: 401,
-			body: {
-				message: "You need an active subscription."
-			}
-		}
+		throw createError({
+			statusCode: 403,
+			message: "You don't have an active subscription"
+		})
 	}
 
 	// Get the user's matches
@@ -32,12 +30,10 @@ export default defineEventHandler(async event => {
 				body: newMatch
 			}
 		} catch (error) {
-			return {
+			throw createError({
 				statusCode: 404,
-				body: {
-					message: "Could not find a match with that ID."
-				}
-			}
+				message: "Match not found."
+			});
 		}
 
 	}

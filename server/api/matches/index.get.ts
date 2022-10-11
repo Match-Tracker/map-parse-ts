@@ -7,12 +7,10 @@ export default defineEventHandler(async event => {
 	const query = getQuery(event);
 	// If the user is not authed, return an error
 	if (!user) {
-		return {
+		return createError({
 			statusCode: 401,
-			body: {
-				message: "Unauthorized"
-			}
-		};
+			message: "You need to be logged in to access this route."
+		})
 	}
 
 	// Get the user's matches
