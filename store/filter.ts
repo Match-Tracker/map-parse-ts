@@ -1,6 +1,6 @@
 import { useMatch } from './match';
 import { defineStore } from 'pinia'
-import { RoundOutcome, Side, TradedFilter } from '~/types/filters';
+import { RoundOutcome, Side, TradedFilter, Timing } from '~/types/filters';
 import { Player, PlantSite } from '~/types/match';
 import { match } from 'assert';
 
@@ -19,6 +19,7 @@ export const useFilter = defineStore('filter', {
 			drawHeatmap: false,
 			traded: TradedFilter.All,
 			rounds: [],
+			timing: Timing.All,
 		}
 	},
 	actions: {

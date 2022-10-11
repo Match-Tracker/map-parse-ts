@@ -23,7 +23,7 @@
 import { Ref } from 'vue';
 
 import { useFilter } from '~~/store/filter';
-import { RoundOutcome, Side, TradedFilter } from '~~/types/filters';
+import { RoundOutcome, Side, Timing, TradedFilter } from '~~/types/filters';
 import { PlantSite } from '~/types/match';
 
 import ButtonGroup from './ButtonGroup.vue';
@@ -170,6 +170,26 @@ const filters = [
 				value: [2, 14]
 			}
 		]
+	},
+	{
+		title: 'Timing',
+		key: 'timing',
+		tabs: ['kills'],
+		options: [
+			{
+				label: 'All',
+				value: Timing.All
+			},
+			{
+				label: 'Pre-Plant',
+				value: Timing.Pre
+			},
+			{
+				label: 'Post-Plant',
+				value: Timing.Post
+			}
+		]
 	}
+	
 ]
 </script>

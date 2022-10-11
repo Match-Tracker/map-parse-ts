@@ -29,6 +29,12 @@ export enum TradedFilter {
 	All = "All"
 }
 
+export enum Timing {
+	Pre = "Pre",
+	Post = "Post",
+	All = "All"
+}
+
 export interface Filter {
 	roundTimeRange: number[];
 	minRoundNumber: number;
@@ -42,4 +48,5 @@ export interface Filter {
 	drawHeatmap: boolean;
 	traded: TradedFilter;
 	rounds: number[]; 
+	timing: Timing;
 }

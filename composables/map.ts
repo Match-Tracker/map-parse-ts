@@ -190,6 +190,12 @@ class Map {
 		return outcome === RoundOutcome.Win && isWin || outcome === RoundOutcome.Loss && !isWin;
 	}
 
+	inTiming(kill: Kill, filter: Filter) {
+		const plant_time = this.match.rounds[kill.round].plant_events.plant_time_in_round;
+		if (filter.timing == 'All' || (plant_time != null && ((filter.timing == 'Pre' && plant_time > kill.kill_time_in_round) || (filter.timing == 'Post' && plant_time < kill.kill_time_in_round)))) {
+			return true;
+		} return false;
+	}
 	atPlantspot(player: Player, site: PlantSite, round: number) {
 		if (site === PlantSite.All) return true;
 
@@ -368,8 +374,8 @@ class Map {
 			if (filter.firstBlood && (index === 0 || kill.round === kills[index - 1].round)) {
 				return;
 			}
-
-			if (player && killerPosition && this.isSide(player, filter.side, kill.round) && this.isOutcome(player, filter.roundOutcome, kill.round) && this.isTraded(kill, kills, filter) && this.isRounds(kill, filter)) {
+			
+			if (player && killerPosition && this.isSide(player, filter.side, kill.round) && this.isOutcome(player, filter.roundOutcome, kill.round) && this.isTraded(kill, kills, filter) && this.isRounds(kill, filter) && this.inTiming(kill, filter)) {
 				// Draw killer, victim and line between them
 				this.drawLine(killerPosition.location.x, killerPosition.location.y, kill.victim_death_location.x, kill.victim_death_location.y, this.getPlayerFromPuuid(killerPosition.player_puuid));
 				this.drawPlayer(killerPosition.location.x, killerPosition.location.y, 10, killerPosition.player_puuid, killerPosition.view_radians, false, false);
