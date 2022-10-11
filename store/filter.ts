@@ -17,7 +17,8 @@ export const useFilter = defineStore('filter', {
 			plantedAt: PlantSite.All,
 			firstBlood: false,
 			drawHeatmap: false,
-			traded: TradedFilter.All
+			traded: TradedFilter.All,
+			rounds: [],
 		}
 	},
 	actions: {

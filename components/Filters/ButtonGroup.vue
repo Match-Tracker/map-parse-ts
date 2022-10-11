@@ -14,7 +14,7 @@ import { useFilter } from '~~/store/filter';
 
 const filter = useFilter();
 const isActive = (value) => {
-	return filter[props.keyName] === value;
+	return filter[props.keyName] === value || JSON.stringify(filter[props.keyName]) === JSON.stringify(value);
 }
 
 function createFilterUpdater<T>(value: T) {

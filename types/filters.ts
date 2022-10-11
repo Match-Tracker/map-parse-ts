@@ -41,4 +41,5 @@ export interface Filter {
 	firstBlood: boolean;
 	drawHeatmap: boolean;
 	traded: TradedFilter;
+	rounds: number[]; 
 }

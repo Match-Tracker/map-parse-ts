@@ -148,7 +148,26 @@ const filters = [
 			},
 			{
 				label: 'First Blood',
-				value: true,
+				value: true
+			}
+		]
+	},
+	{
+		title: 'Round',
+		key: 'rounds',
+		tabs: ['kills'],
+		options: [
+			{
+				label: 'All',
+				value: []
+			},
+			{
+				label: 'Pistol Round',
+				value: [1, 13]
+			},
+			{
+				label: '2nd Round',
+				value: [2, 14]
 			}
 		]
 	}

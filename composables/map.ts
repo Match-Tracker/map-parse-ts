@@ -149,6 +149,13 @@ class Map {
 		});
 	}
 
+	isRounds(currentKill: Kill, filter: Filter) {
+		if (filter.rounds.includes(currentKill.round) || (filter.rounds.length == 0)) {
+			return true;
+		}
+		return false;
+	}
+
 	isTraded(currentKill: Kill, kills: Kill[], filter: Filter) {
 		if (filter.traded === TradedFilter.All) return true;
 
@@ -355,13 +362,14 @@ class Map {
 		kills.forEach((kill, index) => {
 			const player: Player = filter.players.find((player) => player.puuid === kill.killer_puuid);
 			const killerPosition: PlayerLocationsOn | null = kill.player_locations_on_kill.find((location) => location.player_puuid === kill.killer_puuid) || null;
+			
 
 			// If firstblood & not first kill in the round skip
 			if (filter.firstBlood && (index === 0 || kill.round === kills[index - 1].round)) {
 				return;
 			}
 
-			if (player && killerPosition && this.isSide(player, filter.side, kill.round) && this.isOutcome(player, filter.roundOutcome, kill.round) && this.isTraded(kill, kills, filter)) {
+			if (player && killerPosition && this.isSide(player, filter.side, kill.round) && this.isOutcome(player, filter.roundOutcome, kill.round) && this.isTraded(kill, kills, filter) && this.isRounds(kill, filter)) {
 				// Draw killer, victim and line between them
 				this.drawLine(killerPosition.location.x, killerPosition.location.y, kill.victim_death_location.x, kill.victim_death_location.y, this.getPlayerFromPuuid(killerPosition.player_puuid));
 				this.drawPlayer(killerPosition.location.x, killerPosition.location.y, 10, killerPosition.player_puuid, killerPosition.view_radians, false, false);
