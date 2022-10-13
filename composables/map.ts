@@ -1,7 +1,7 @@
 import { AgentID, Round, Team, type Kill, type MapInfo, type Match, type Player, type PlayerLocationsOn, PlantSite, Blue } from './../types/match';
 
 import * as MapData from '../types/maps.json';
-import { Filter, RoundOutcome, Side, TradedFilter } from '~~/types/filters';
+import { Filter, RoundOutcome, Side, Timing, TradedFilter } from '~~/types/filters';
 import Heatmap from './heatmap';
 import { Console } from 'console';
 
@@ -80,7 +80,7 @@ class Map {
 
 			this.isReady = true;
 
-			this.update({ roundTimeRange: [0, 150], minRoundNumber: 0, maxRoundNumber: 30, side: Side.All, players: this.match.players.all_players, roundOutcome: RoundOutcome.All, hasPlanted: undefined, plantedAt: PlantSite.All, firstBlood: false, drawHeatmap: false, traded: TradedFilter.All });
+			this.update({ roundTimeRange: [0, 150], minRoundNumber: 0, maxRoundNumber: 30, side: Side.All, players: this.match.players.all_players, roundOutcome: RoundOutcome.All, hasPlanted: undefined, plantedAt: PlantSite.All, firstBlood: false, drawHeatmap: false, traded: TradedFilter.All, weapons: [] });
 		});
 	}
 
@@ -164,7 +164,7 @@ class Map {
 		const isUntraded = kills.find((kill) => kill.kill_time_in_round >= currentKill.kill_time_in_round + 10000 && currentKill.killer_puuid === kill.victim_puuid && kill.round === currentKill.round);
 
 		if (filter.traded === TradedFilter.Traded && isTraded) return true;
-		
+
 		if (filter.traded === TradedFilter.NotTraded && isUntraded) return true;
 
 		return false;
@@ -192,10 +192,20 @@ class Map {
 
 	inTiming(kill: Kill, filter: Filter) {
 		const plant_time = this.match.rounds[kill.round].plant_events.plant_time_in_round;
-		if (filter.timing == 'All' || (plant_time != null && ((filter.timing == 'Pre' && plant_time > kill.kill_time_in_round) || (filter.timing == 'Post' && plant_time < kill.kill_time_in_round)))) {
+		if (filter.timing === Timing.All || (plant_time != null && ((filter.timing == 'Pre' && plant_time > kill.kill_time_in_round) || (filter.timing == 'Post' && plant_time < kill.kill_time_in_round)))) {
 			return true;
-		} return false;
+		}
+
+		return false;
 	}
+
+	hasWeapon(kill: Kill, filter: Filter) {
+		if (filter.weapons.length === 0) return true;
+
+		// Check if kill.damage_weapon_name is in filter.weapons
+		return filter.weapons.includes(kill.damage_weapon_name);
+	}
+
 	atPlantspot(player: Player, site: PlantSite, round: number) {
 		if (site === PlantSite.All) return true;
 
@@ -320,7 +330,7 @@ class Map {
 			const filteredLocations: PlayerLocationsOn[] = [...kill.player_locations_on_kill, victim].filter((location) => {
 				const player: Player = filter.players.find((player) => player.puuid === location.player_puuid) || null;
 
-				return player && this.isSide(player, filter.side, kill.round) && this.isOutcome(player, filter.roundOutcome, kill.round);
+				return player && this.isSide(player, filter.side, kill.round) && this.isOutcome(player, filter.roundOutcome, kill.round) && this.inTiming(kill, filter);
 			});
 
 			return [
@@ -368,14 +378,14 @@ class Map {
 		kills.forEach((kill, index) => {
 			const player: Player = filter.players.find((player) => player.puuid === kill.killer_puuid);
 			const killerPosition: PlayerLocationsOn | null = kill.player_locations_on_kill.find((location) => location.player_puuid === kill.killer_puuid) || null;
-			
+
 
 			// If firstblood & not first kill in the round skip
 			if (filter.firstBlood && (index === 0 || kill.round === kills[index - 1].round)) {
 				return;
 			}
-			
-			if (player && killerPosition && this.isSide(player, filter.side, kill.round) && this.isOutcome(player, filter.roundOutcome, kill.round) && this.isTraded(kill, kills, filter) && this.isRounds(kill, filter) && this.inTiming(kill, filter)) {
+
+			if (player && killerPosition && this.isSide(player, filter.side, kill.round) && this.isOutcome(player, filter.roundOutcome, kill.round) && this.isTraded(kill, kills, filter) && this.isRounds(kill, filter) && this.inTiming(kill, filter) && this.hasWeapon(kill, filter)) {
 				// Draw killer, victim and line between them
 				this.drawLine(killerPosition.location.x, killerPosition.location.y, kill.victim_death_location.x, kill.victim_death_location.y, this.getPlayerFromPuuid(killerPosition.player_puuid));
 				this.drawPlayer(killerPosition.location.x, killerPosition.location.y, 10, killerPosition.player_puuid, killerPosition.view_radians, false, false);

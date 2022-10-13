@@ -1,19 +1,22 @@
 <template>
-	<div class="card bg-neutral">
+	<div class="card bg-neutral overflow-visible">
 		<div class="card-body">
 			<h2 class="card-title">
-      	Match Filters
+				Match Filters
 				<div class="badge badge-primary text-xs font-bold">NEW</div>
 			</h2>
 
 			<div class="options flex flex-col gap-4 mt-6">
 				<div class="tabs tabs-boxed">
-					<a :class="`tab ${isActive('movement') ? 'tab-active' : ''}`" @click="setActive('movement')">Movement</a> 
-					<a :class="`tab ${isActive('kills') ? 'tab-active' : ''}`" @click="setActive('kills')">Kills</a> 
+					<a :class="`tab ${isActive('movement') ? 'tab-active' : ''}`" @click="setActive('movement')">Movement</a>
+					<a :class="`tab ${isActive('kills') ? 'tab-active' : ''}`" @click="setActive('kills')">Kills</a>
 					<a :class="`tab ${isActive('plants') ? 'tab-active' : ''}`" @click="setActive('plants')">Plants</a>
 				</div>
 
-				<ButtonGroup v-for="(filterable, index) in filters" v-show="filterable.tabs.includes(activeTab)" :key="index" :title="filterable.title" :options="filterable.options" :key-name="filterable.key" />
+				<ButtonGroup v-for="(filterable, index) in filters" v-show="filterable.tabs.includes(activeTab)" :key="index"
+					:title="filterable.title" :options="filterable.options" :key-name="filterable.key" />
+				<SelectOption v-for="(select, index) in selectables" v-show="select.tabs.includes(activeTab)" :key="index"
+					:title="select.title" :options="select.options" :key-name="select.key" />
 			</div>
 		</div>
 	</div>
@@ -24,18 +27,19 @@ import { Ref } from 'vue';
 
 import { useFilter } from '~~/store/filter';
 import { RoundOutcome, Side, Timing, TradedFilter } from '~~/types/filters';
-import { PlantSite } from '~/types/match';
+import { DamageWeaponNameEnum, PlantSite } from '~/types/match';
 
 import ButtonGroup from './ButtonGroup.vue';
+import SelectOption from './SelectOption.vue';
 
 const filter = useFilter();
 const activeTab: Ref<string> = ref('movement');
 
-function isActive (tab: string) {
+function isActive(tab: string) {
 	return activeTab.value === tab
 }
 
-function setActive (tab: string) {
+function setActive(tab: string) {
 	activeTab.value = tab;
 
 	filter.changeTab(tab);
@@ -98,7 +102,7 @@ const filters = [
 	{
 		title: 'Planted At',
 		key: 'plantedAt',
-		tabs: ['plants'],
+		tabs: ['plants', 'movement'],
 		options: [
 			{
 				value: PlantSite.All,
@@ -174,7 +178,7 @@ const filters = [
 	{
 		title: 'Timing',
 		key: 'timing',
-		tabs: ['kills'],
+		tabs: ['kills', 'movement'],
 		options: [
 			{
 				label: 'All',
@@ -190,6 +194,18 @@ const filters = [
 			}
 		]
 	}
-	
+
+]
+
+const selectables = [
+	{
+		title: 'Weapons',
+		key: 'weapons',
+		tabs: ['kills'],
+		options: Object.keys(DamageWeaponNameEnum).map((key) => ({
+			label: DamageWeaponNameEnum[key],
+			value: key
+		}))
+	}
 ]
 </script>

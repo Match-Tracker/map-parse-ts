@@ -1,4 +1,4 @@
-import { PlantSite, Player } from "./match";
+import { DamageWeaponNameEnum, PlantSite, Player } from "./match";
 
 export enum Side {
 	Attacking = "Attacking",
@@ -49,4 +49,5 @@ export interface Filter {
 	traded: TradedFilter;
 	rounds: number[]; 
 	timing: Timing;
+	weapons: DamageWeaponNameEnum[]
 }
