@@ -20,7 +20,8 @@ export const useFilter = defineStore('filter', {
 			traded: TradedFilter.All,
 			rounds: [],
 			timing: Timing.All,
-			weapons: []
+			weapons: [],
+			economy: []
 		}
 	},
 	actions: {

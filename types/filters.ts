@@ -50,4 +50,5 @@ export interface Filter {
 	rounds: number[]; 
 	timing: Timing;
 	weapons: DamageWeaponNameEnum[]
+	economy: number[]
 }

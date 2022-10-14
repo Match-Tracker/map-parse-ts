@@ -192,6 +192,7 @@ class Map {
 
 	inTiming(kill: Kill, filter: Filter) {
 		const plant_time = this.match.rounds[kill.round].plant_events.plant_time_in_round;
+
 		if (filter.timing === Timing.All || (plant_time != null && ((filter.timing == 'Pre' && plant_time > kill.kill_time_in_round) || (filter.timing == 'Post' && plant_time < kill.kill_time_in_round)))) {
 			return true;
 		}
@@ -212,6 +213,16 @@ class Map {
 		const roundInfo: Round = this.match.rounds[round];
 
 		return roundInfo.plant_events.plant_site === site;
+	}
+
+	loadoutValue(kill: Kill, filter: Filter) {
+		const team = this.match.rounds[kill.round].player_stats.filter((player) => player.player_team === kill.killer_team)
+		let total = 0; 
+		team.forEach(function(player) { total += player.economy.loadout_value; })
+		if (filter.economy.length === 0  || ((filter.economy[0] <= total) && (total <= filter.economy[1]))) {
+			return true
+		}
+		return false
 	}
 
 	drawPlayerCircle(x: number, y: number, radius: number, player: Player, victim?: boolean) {
@@ -385,7 +396,7 @@ class Map {
 				return;
 			}
 
-			if (player && killerPosition && this.isSide(player, filter.side, kill.round) && this.isOutcome(player, filter.roundOutcome, kill.round) && this.isTraded(kill, kills, filter) && this.isRounds(kill, filter) && this.inTiming(kill, filter) && this.hasWeapon(kill, filter)) {
+			if (player && killerPosition && this.isSide(player, filter.side, kill.round) && this.isOutcome(player, filter.roundOutcome, kill.round) && this.isTraded(kill, kills, filter) && this.isRounds(kill, filter) && this.inTiming(kill, filter) && this.hasWeapon(kill, filter) && this.loadoutValue(kill, filter)) {
 				// Draw killer, victim and line between them
 				this.drawLine(killerPosition.location.x, killerPosition.location.y, kill.victim_death_location.x, kill.victim_death_location.y, this.getPlayerFromPuuid(killerPosition.player_puuid));
 				this.drawPlayer(killerPosition.location.x, killerPosition.location.y, 10, killerPosition.player_puuid, killerPosition.view_radians, false, false);

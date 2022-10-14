@@ -193,7 +193,34 @@ const filters = [
 				value: Timing.Post
 			}
 		]
-	}
+	},
+	{
+		title: 'Money Spent',
+		key: 'economy',
+		tabs: ['kills'],
+		options: [
+			{
+				label: 'All',
+				value: []
+			},
+			{
+				label: 'Eco',
+				value: [0, 4000]
+			},
+			{
+				label: 'Lowbuy',
+				value: [4000, 8000]
+			},
+			{
+				label: 'Halfbuy',
+				value: [8000, 20000]
+			},
+			{
+				label: 'Fullbuy',
+				value: [20000, 1000000]
+			},
+		]
+	},
 
 ]
 
