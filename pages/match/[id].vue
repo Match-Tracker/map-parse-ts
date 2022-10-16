@@ -4,22 +4,29 @@
 			<div class="btn btn-ghost btn-lg loading" />
 			<p class="text-white mt-1">Loading Match overview...</p>
 		</div>
-		<div v-if="hasLoaded" class="overview flex flex-row min-w-full justify-center items-start gap-12">
-			<div v-if="match.canvas" class="player__menus flex gap-3">
-				<!-- <PlayersPlayerTab :team="team" /> -->
-				<PlayersTeamsTab :showRed="true" :showBlue="true" />
+		<div class="flex flex-col">
+			<div v-if="hasLoaded" class="overview flex flex-row min-w-full justify-center items-start gap-12">
+				<div v-if="match.canvas" class="player__menus flex gap-3">
+					<!-- <PlayersPlayerTab :team="team" /> -->
+					<PlayersTeamsTab :showRed="true" :showBlue="true" />
+				</div>
+
+
+				<div class="flex flex-col w-1/3 h-1/3">
+					<MatchOverview class="mx-auto mb-6" />
+
+					<MapView v-if="match.metadata.matchid" />
+
+					<RangeSlide class="mt-4" />
+
+				</div>
+
+				<FiltersFilterOptions />
 			</div>
 
-
-			<div class="flex flex-col w-1/3 h-1/3">
-				<MatchOverview class="mx-auto mb-6" />
-
-				<MapView v-if="match.metadata.matchid" />
-
-				<RangeSlide class="mt-4" />
+			<div class="min-w-full justify-center items-start px-32 my-16">
+				<MatchStats />
 			</div>
-
-			<FiltersFilterOptions />
 		</div>
 	</div>
 </template>
