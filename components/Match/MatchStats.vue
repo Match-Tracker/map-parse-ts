@@ -11,32 +11,22 @@
     <div class="flex w-full">
       <div class="flex flex-col card bg-base-300 rounded-box w-1/2 justify-center items-center p-8 gap-2">
         <p> Team 1</p>
-        <div class="stats shadow w-fit">
-          <div class="stat">
-            <div class="stat-title">Rounds with operator</div>
-            <div class="stat-value">40%</div>
-          </div>
-        </div>
+        <StatBox title="Rounds with Operator" value="28%" />
       </div>
       <div class="divider divider-horizontal"></div>
-      <div class="flex flex-col card bg-base-300 rounded-box w-1/2 justify-center items-center p-8 gap-2">
+      <div class="flex flex-col card bg-base-300 rounded-box w-1/2 justify-center items-center p-8 gap-2 h-80">
         <p> Team 2</p>
-        <div class="stats shadow w-fit">
-          <div class="stat">
-            <div class="stat-title">Rounds with operator</div>
-            <div class="stat-value">60%</div>
-          </div>
-        </div>
+        <StatBox title="Rounds with Operator" value="28%" />
       </div>    
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-// import { useMatchStats } from '~~/store/match-stats';
+import StatBox from './StatBox.vue';
+
 
 const activeTab = ref('all');
-// const stats = useMatchStats()
 
 function isActive(tab: string) {
 	return activeTab.value === tab
@@ -44,6 +34,5 @@ function isActive(tab: string) {
 
 function setActive(tab: string) {
 	activeTab.value = tab;
-  // stats.updateFilter('side', tab)
 }
 </script>
