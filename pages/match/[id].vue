@@ -24,7 +24,7 @@
 				<FiltersFilterOptions />
 			</div>
 
-			<div class="min-w-full justify-center items-start px-32 my-16">
+			<div v-if="hasLoaded" class="min-w-full justify-center items-start px-32 my-16">
 				<MatchStats />
 			</div>
 		</div>
