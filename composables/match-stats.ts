@@ -21,6 +21,7 @@ class MatchStats {
 			{title: 'A Site Plants', blue: '', red: ''},
 			{title: 'B Site Plants', blue: '', red: ''},
 			{title: 'C Site Plants', blue: '', red: ''},
+			{title: 'Kills In 20s', blue: '', red: ''},
 
 	];
   }
@@ -92,7 +93,6 @@ class MatchStats {
 		})
 	}
 
-	// How "star player" centered is the team. How big % of kills do the top 2 highest fraggers get?
 	starPlayer(match) {
 		const players = []
 		match.players.all_players.forEach((player) => {players.push({puuid: player.puuid, team: player.team, kills: 0})})
@@ -109,9 +109,23 @@ class MatchStats {
 			const totalKills = teamKills.reduce((a,b) => a + b, 0)
 			teamKills.sort(function(a, b){ return b - a });
 			const starKills = teamKills[0] + teamKills[1];
-			console.log(starKills, totalKills, teamKills)
 			this.stats.find((stat) => stat['title'] === `Star Players Kill %`)[team] = `${(starKills/totalKills * 100).toFixed(1)}%`
 		}));
+	}
+
+	killPace(match) {
+		const teams = ['Blue', 'Red'].forEach((team) => {
+			let fastkills = 0;
+			match.kills.forEach((kill) => {
+				if (kill.killer_team === team && kill.kill_time_in_round < 20000 && this.isAttack(team, this.side, kill.round)) {
+					fastkills += 1
+				}
+			})
+
+			const teamKills = match.players.all_players.filter((player) => player.team === team).map((p) => {return p.stats.kills});
+			const totalKills = teamKills.reduce((a,b) => a + b, 0)
+			this.stats.find((stat) => stat['title'] === `Kills In 20s`)[team] = `${(fastkills/totalKills * 100).toFixed(1)}%`
+		})
 	}
 
 	update() {
@@ -120,6 +134,7 @@ class MatchStats {
 		this.pistolRoundsWon(match);
 		this.plantSites(match);
 		this.starPlayer(match);
+		this.killPace(match);
 		return this.stats;
 	}
 }
