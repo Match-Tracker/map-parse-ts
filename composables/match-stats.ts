@@ -17,6 +17,7 @@ class MatchStats {
 		this.stats = [
 			{title: 'Operator Rounds %', blue: '', red: ''},
 			{title: 'Pistol Rounds Wins', blue: '', red: ''},
+			{title: 'Star Players Kill %', blue: '', red: ''},
 			{title: 'A Site Plants', blue: '', red: ''},
 			{title: 'B Site Plants', blue: '', red: ''},
 			{title: 'C Site Plants', blue: '', red: ''},
@@ -89,8 +90,28 @@ class MatchStats {
 					this.stats.find((stat) => stat['title'] === `${site} Site Plants`)['Blue'] = `${planted[0][site]}`		
 					this.stats.find((stat) => stat['title'] === `${site} Site Plants`)['Red'] = `${planted[1][site]}`		
 		})
+	}
 
-		console.log(sites)
+	// How "star player" centered is the team. How big % of kills do the top 2 highest fraggers get?
+	starPlayer(match) {
+		const players = []
+		match.players.all_players.forEach((player) => {players.push({puuid: player.puuid, team: player.team, kills: 0})})
+		match.rounds.forEach((round, index) => {
+			round.player_stats.forEach((player) => {
+				if (this.isAttack(player.player_team, this.side, index)) {
+					players.find((playerStore) => playerStore.puuid === player.player_puuid)['kills'] += player.kills;
+				}
+			})
+		})
+		
+		const teams = ['Blue', 'Red'].forEach((team => {
+			const teamKills = players.filter((player) => player.team === team).map((p) => {return p.kills});
+			const totalKills = teamKills.reduce((a,b) => a + b, 0)
+			teamKills.sort(function(a, b){ return b - a });
+			const starKills = teamKills[0] + teamKills[1];
+			console.log(starKills, totalKills, teamKills)
+			this.stats.find((stat) => stat['title'] === `Star Players Kill %`)[team] = `${(starKills/totalKills * 100).toFixed(1)}%`
+		}));
 	}
 
 	update() {
@@ -98,6 +119,7 @@ class MatchStats {
 		this.operatorRounds(match);
 		this.pistolRoundsWon(match);
 		this.plantSites(match);
+		this.starPlayer(match);
 		return this.stats;
 	}
 }

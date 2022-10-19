@@ -8,15 +8,15 @@
       <a :class="`tab ${isActive('Defence') ? 'tab-active' : ''}`" @click="setActive('Defence')">Defence</a>
     </div>
 
-    <div class="flex w-full">
-      <div class="flex flex-col card bg-base-300 rounded-box w-1/2 justify-start items-center p-8 gap-2 border-blue-500 border-2">
+    <div class="flex flex-row justify-center w-full">
+      <div class="flex flex-col card bg-base-300 rounded-box w-[500px] justify-start items-center p-4 gap-2 border-blue-500 border-2">
         <p class="font-bold text-xl"> Team 1 </p>
-        <div class="flex flex-row gap-2 flex-wrap"> <StatBox v-for="(stat) in stats.stats" :title="stat['title']" :value="stat['Blue']" /> </div>
+        <div class="grid grid-cols-2 gap-2 justify-center items-center"> <StatBox v-for="(stat) in stats.stats" :title="stat['title']" :value="stat['Blue']" /> </div>
       </div>
       <div class="divider divider-horizontal"></div>
-      <div class="flex flex-col card bg-base-300 rounded-box w-1/2 justify-start items-center p-8 gap-2 h-80 border-red-500 border-2">
+      <div class="flex flex-col card bg-base-300 rounded-box w-[500px] justify-start items-center p-4 gap-2 border-red-500 border-2">
         <p class="font-bold text-xl"> Team 2 </p>
-        <div class="flex flex-row gap-2 flex-wrap"> <StatBox v-for="(stat) in stats.stats" :title="stat['title']" :value="stat['Red']" /> </div>
+        <div class="grid grid-cols-2 gap-2 justify-center items-center"> <StatBox v-for="(stat) in stats.stats" :title="stat['title']" :value="stat['Red']" /> </div>
       </div>    
     </div>
   </div>
