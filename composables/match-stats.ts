@@ -40,26 +40,31 @@ class MatchStats {
 	operatorRounds(match) {
 		let blueRounds = 0
 		let redRounds = 0
+		const teamRound: any[] = [[false, 0, 0], [false, 0, 0]]
+
 
 		match.rounds.forEach((round, index) => {
 			const hasOperator = round.player_stats.filter((player) => player.economy.weapon.name === 'Operator') 
-			if (hasOperator.length > 0) {
-				const teamRound: boolean[] = [false, false]
-				hasOperator.forEach((player) => {
-					if (player.player_team === 'Blue' && teamRound[0] != true && this.isAttack('Blue', this.side, index)) {
-						teamRound[0] = true; 
-						blueRounds += 1
-					} if (player.player_team === 'Red' && teamRound[1] != true && this.isAttack('Red', this.side, index)) { 
-						teamRound[1] = true; 
-						redRounds += 1
-					}
-				})
-			}
+
+			const teams = ['Blue', 'Red'].forEach((team, teamIndex) => {
+				teamRound[teamIndex][0] = false;
+
+				if (this.isAttack(team, this.side, index)) {
+					teamRound[teamIndex][2] += 1
+				}
+
+				if (hasOperator.length > 0) {
+					hasOperator.forEach((player) => {
+						if (player.player_team === team && teamRound[teamIndex][0] != true && this.isAttack(team, this.side, index)) {
+							teamRound[teamIndex][0] = true; 
+							teamRound[teamIndex][1] += 1;
+						}
+					})
+				}
+			})
 		})
-	
-		// To Do: side rounds? 
-		this.stats.find((stat) => stat['title'] === 'Operator Rounds %')['Blue'] = `${((blueRounds / match.rounds.length) * 100).toFixed(1)}%`
-		this.stats.find((stat) => stat['title'] === 'Operator Rounds %')['Red'] = `${((redRounds / match.rounds.length) * 100).toFixed(1)}%`
+		this.stats.find((stat) => stat['title'] === 'Operator Rounds %')['Blue'] = `${((teamRound[0][1] / teamRound[0][2]) * 100).toFixed(1)}%`
+		this.stats.find((stat) => stat['title'] === 'Operator Rounds %')['Red'] = `${((teamRound[1][1] / teamRound[1][2]) * 100).toFixed(1)}%`	
 	}
 
 	pistolRoundsWon(match) {
@@ -128,6 +133,25 @@ class MatchStats {
 		})
 	}
 
+	forceBuy(match) {
+		const teams = ['Blue', 'Red'].forEach((team) => {
+			let moneySpent = 0;
+			match.rounds.forEach((round, index) => {
+				if (round.winning_team != team && this.isAttack(team, this.side, index) && (index === 0 || index === 12)) {
+					round.player_stats.forEach((player) => {
+						if (player.player_team === team) {
+							moneySpent += player.economy.spent
+						}
+					})
+
+					if (moneySpent > 0) {
+						// console.log('Force buy!')
+					}
+				}
+			})
+		})
+	}
+
 	update() {
 		const match = useMatch();
 		this.operatorRounds(match);
@@ -135,6 +159,8 @@ class MatchStats {
 		this.plantSites(match);
 		this.starPlayer(match);
 		this.killPace(match);
+		this.forceBuy(match);
+
 		return this.stats;
 	}
 }
