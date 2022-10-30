@@ -1,9 +1,9 @@
 <template>
 	<div class="navbar px-32 py-8">
 		<div class="flex-1">
-			<span class="text-white">
-				Match Tracker
-			</span>
+			<NuxtLink to="/">
+				<img src="~/assets/img/logo.svg" class="w-48" />
+			</NuxtLink>
 
 			<div class="links flex gap-12 ml-48">
 				<NuxtLink v-for="(route, index) in routes" :key="index" :to="route.path">
