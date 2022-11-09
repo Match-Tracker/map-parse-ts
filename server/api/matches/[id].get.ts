@@ -7,12 +7,12 @@ export default defineEventHandler(async event => {
 	const user: IUser = event.req["user"];
 	console.log(user)
 	// Check if the user has an active subscription
-	if (!user.subscription.active || user.subscription.expiresAt < new Date()) {
-		throw createError({
-			statusCode: 403,
-			message: "You don't have an active subscription"
-		})
-	}
+	// if (!user.subscription.active || user.subscription.expiresAt < new Date()) {
+	// 	throw createError({
+	// 		statusCode: 403,
+	// 		message: "You don't have an active subscription"
+	// 	})
+	// }
 
 	// Get the user's matches
 	const match = await MatchSchema.findOne({ "metadata.matchid": event.req.context.params.id });
